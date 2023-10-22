@@ -10,8 +10,8 @@ metadata:
       repo-type: github
       polling-interval: 1m
 spec:
-  version: "v2.0.0"
-  image: "c8n.io/vfarcic/openfunction-demo:v0.0.2"
+  # version: "v2.0.0"
+  image: "c8n.io/vfarcic/openfunction-demo"
   imageCredentials:
     name: push-secret
   build:
