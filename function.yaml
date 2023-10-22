@@ -1,0 +1,26 @@
+---
+apiVersion: core.openfunction.io/v1beta2
+kind: Function
+metadata:
+  name: openfunction-demo
+spec:
+  version: "v2.0.0"
+  image: "c8n.io/vfarcic/openfunction-demo:v0.0.2"
+  imageCredentials:
+    name: push-secret
+  build:
+    builder: openfunction/builder-go:v2.4.0-1.17
+    env:
+      FUNC_NAME: "SillyDemo"
+      FUNC_CLEAR_SOURCE: "true"
+    srcRepo:
+      url: "https://github.com/vfarcic/openfunction-demo.git"
+      revision: "main"
+  serving:
+    template:
+      containers:
+        - name: function # DO NOT change this
+          imagePullPolicy: IfNotPresent
+    triggers:
+      http:
+        port: 8080

@@ -1,0 +1,10 @@
+project: dot
+providers:
+  google_secretmanager:
+    env:
+      REGISTRY_SERVER:
+        path: projects/vfarcic/secrets/c8n-registry/versions/1
+      REGISTRY_USER:
+        path: projects/vfarcic/secrets/c8n-user/versions/1
+      REGISTRY_PASSWORD:
+        path: projects/vfarcic/secrets/c8n-secret/versions/1
