@@ -2,7 +2,6 @@ package sillydemo
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -62,10 +61,12 @@ func getDB() *pg.DB {
 }
 
 func VideosHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Start")
+	status := http.StatusOK
+	errorMessage := ""
 	db := getDB()
 	if db == nil {
-		log.Println("Could not establish database connection")
+		status = http.StatusBadRequest
+		errorMessage = "Could not establish database connection"
 		return
 	}
 	var videos []Video
@@ -74,11 +75,20 @@ func VideosHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err.Error())
 		return
 	}
-	log.Println("End")
-	fmt.Fprintf(w, "Videos!!!\n")
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(status)
+	if len(errorMessage) > 0 {
+		status = http.StatusBadRequest
+		responseBytes, _ := json.Marshal(map[string]string{"error": errorMessage})
+		w.Write(responseBytes)
+	} else {
+		responseBytes, _ := json.Marshal(videos)
+		w.Write(responseBytes)
+	}
 }
 
 func VideoHandler(w http.ResponseWriter, r *http.Request) {
+	status := http.StatusOK
 	errorMessage := ""
 	id, ok := r.URL.Query()["id"]
 	if !ok {
@@ -103,10 +113,14 @@ func VideoHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+	if len(errorMessage) > 0 {
+		status = http.StatusBadRequest
+	}
 	response := map[string]string{
 		"error": errorMessage,
 	}
 	responseBytes, _ := json.Marshal(response)
 	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(status)
 	w.Write(responseBytes)
 }
