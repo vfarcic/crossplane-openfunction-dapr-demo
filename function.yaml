@@ -5,7 +5,7 @@ metadata:
   name: openfunction-demo
 spec:
   version: "v2.0.0"
-  image: "c8n.io/vfarcic/openfunction-demo:v0.0.3"
+  image: "c8n.io/vfarcic/openfunction-demo:v0.0.8"
   imageCredentials:
     name: push-secret
   build:
@@ -30,6 +30,36 @@ spec:
               value: app
             - name: DB_NAME
               value: app
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: openfunction-demo-db-app
+                  key: password
     triggers:
       http:
         port: 8080
+---
+apiVersion: db.atlasgo.io/v1alpha1
+kind: AtlasSchema
+metadata:
+  name: silly-demo-videos
+spec:
+  credentials:
+    scheme: postgres
+    host: openfunction-demo-db-rw.a-team
+    port: 5432
+    user: app
+    passwordFrom:
+      secretKeyRef:
+        key: password
+        name: openfunction-demo-db-app
+    database: app
+    parameters:
+      sslmode: disable
+  schema:
+    sql: |
+      create table videos (
+        id varchar(50) not null,
+        title varchar(255) not null,
+        primary key (id)
+      );
