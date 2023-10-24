@@ -55,11 +55,10 @@ func getDB() (*pg.DB, string) {
 }
 
 func VideosHandler(w http.ResponseWriter, r *http.Request) {
-	var db *pg.DB
 	status := http.StatusOK
 	errorMessage := ""
 	var videos []Video
-	db, errorMessage = getDB()
+	db, errorMessage := getDB()
 	if db == nil {
 		status = http.StatusBadRequest
 	} else {
@@ -81,6 +80,7 @@ func VideosHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func VideoHandler(w http.ResponseWriter, r *http.Request) {
+	var db *pg.DB
 	status := http.StatusOK
 	errorMessage := ""
 	id, ok := r.URL.Query()["id"]
