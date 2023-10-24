@@ -2,7 +2,6 @@ package sillydemo
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 
@@ -16,40 +15,35 @@ type Video struct {
 	Title string `json:"title"`
 }
 
-func getDB() *pg.DB {
+func getDB() (*pg.DB, string) {
 	if dbSession != nil {
-		return dbSession
+		return dbSession, ""
 	}
 	endpoint := os.Getenv("DB_ENDPOINT")
 	if len(endpoint) == 0 {
-		log.Println("Environment variable `DB_ENDPOINT` is empty")
-		return nil
+		return nil, "Environment variable `DB_ENDPOINT` is empty"
 	}
 	port := os.Getenv("DB_PORT")
 	if len(port) == 0 {
-		log.Println("Environment variable `DB_PORT` is empty")
-		return nil
+		return nil, "Environment variable `DB_PORT` is empty"
 	}
 	user := os.Getenv("DB_USER")
 	if len(user) == 0 {
 		user = os.Getenv("DB_USERNAME")
 		if len(user) == 0 {
-			log.Println("Environment variables `DB_USER` and `DB_USERNAME` are empty")
-			return nil
+			return nil, "Environment variables `DB_USER` and `DB_USERNAME` are empty"
 		}
 	}
 	pass := os.Getenv("DB_PASS")
 	if len(pass) == 0 {
 		pass = os.Getenv("DB_PASSWORD")
 		if len(pass) == 0 {
-			log.Println("Environment variables `DB_PASS` and `DB_PASSWORD are empty")
-			return nil
+			return nil, "Environment variables `DB_PASS` and `DB_PASSWORD are empty"
 		}
 	}
 	name := os.Getenv("DB_NAME")
 	if len(name) == 0 {
-		log.Println("Environment variable `DB_NAME` is empty")
-		return nil
+		return nil, "Environment variable `DB_NAME` is empty"
 	}
 	dbSession := pg.Connect(&pg.Options{
 		Addr:     endpoint + ":" + port,
@@ -57,23 +51,22 @@ func getDB() *pg.DB {
 		Password: pass,
 		Database: name,
 	})
-	return dbSession
+	return dbSession, ""
 }
 
 func VideosHandler(w http.ResponseWriter, r *http.Request) {
+	var db *pg.DB
 	status := http.StatusOK
 	errorMessage := ""
-	db := getDB()
+	var videos []Video
+	db, errorMessage = getDB()
 	if db == nil {
 		status = http.StatusBadRequest
-		errorMessage = "Could not establish database connection"
-		return
-	}
-	var videos []Video
-	err := db.Model(&videos).Select()
-	if err != nil {
-		log.Println(err.Error())
-		return
+	} else {
+		err := db.Model(&videos).Select()
+		if err != nil {
+			errorMessage = err.Error()
+		}
 	}
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(status)
@@ -103,13 +96,13 @@ func VideoHandler(w http.ResponseWriter, r *http.Request) {
 			ID:    id[0],
 			Title: title[0],
 		}
-		db := getDB()
+		db, errorMessage = getDB()
 		if db == nil {
 			errorMessage = "Could not connect to the database"
 		} else {
 			_, err := db.Model(video).Insert()
 			if err != nil {
-				errorMessage = "Could not connect to the database"
+				errorMessage = err.Error()
 			}
 		}
 	}
