@@ -61,16 +61,19 @@ func getDB() *pg.DB {
 }
 
 func VideosHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Start")
 	db := getDB()
 	if db == nil {
+		log.Println("Could not establish database connection")
 		return
 	}
 	var videos []Video
 	err := db.Model(&videos).Select()
 	if err != nil {
+		log.Println(err.Error())
 		return
 	}
-	// TODO: Return videos
+	log.Println("End")
 	fmt.Fprintf(w, "Videos!!!\n")
 }
 

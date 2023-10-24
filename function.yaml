@@ -5,13 +5,13 @@ metadata:
   name: openfunction-demo
 spec:
   version: "v2.0.0"
-  image: "c8n.io/vfarcic/openfunction-demo:v0.0.2"
+  image: "c8n.io/vfarcic/openfunction-demo:v0.0.3"
   imageCredentials:
     name: push-secret
   build:
     builder: openfunction/builder-go:v2.4.0-1.17
     env:
-      FUNC_NAME: "SillyDemo"
+      FUNC_NAME: SillyDemo
       FUNC_CLEAR_SOURCE: "true"
     srcRepo:
       url: "https://github.com/vfarcic/openfunction-demo.git"
@@ -21,6 +21,15 @@ spec:
       containers:
         - name: function # DO NOT change this
           imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_ENDPOINT
+              value: openfunction-demo-db-rw
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: app
+            - name: DB_NAME
+              value: app
     triggers:
       http:
         port: 8080
