@@ -1,6 +1,7 @@
 package sillydemo
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -78,26 +79,34 @@ func VideosHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func VideoHandler(w http.ResponseWriter, r *http.Request) {
+	errorMessage := ""
 	id, ok := r.URL.Query()["id"]
 	if !ok {
-		log.Println("Query parameter `id` is missing")
-		return
+		errorMessage = "Query parameter `id` is missing"
 	}
 	title, ok := r.URL.Query()["title"]
 	if !ok {
-		log.Println("Query parameter `title` is missing")
-		return
+		errorMessage = "Query parameter `title` is missing"
 	}
-	video := &Video{
-		ID:    id[0],
-		Title: title[0],
+	if len(errorMessage) == 0 {
+		video := &Video{
+			ID:    id[0],
+			Title: title[0],
+		}
+		db := getDB()
+		if db == nil {
+			errorMessage = "Could not connect to the database"
+		} else {
+			_, err := db.Model(video).Insert()
+			if err != nil {
+				errorMessage = "Could not connect to the database"
+			}
+		}
 	}
-	db := getDB()
-	if db == nil {
-		return
+	response := map[string]string{
+		"error": errorMessage,
 	}
-	_, err := db.Model(video).Insert()
-	if err != nil {
-		return
-	}
+	responseBytes, _ := json.Marshal(response)
+	w.Header().Set("Content-type", "application/json")
+	w.Write(responseBytes)
 }
