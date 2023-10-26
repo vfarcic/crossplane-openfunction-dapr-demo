@@ -15,7 +15,7 @@ func init() {
 
 func RootHandler(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{
-		"output": "This is a OpenFunction demo",
+		"output": "This is the OpenFunction demo",
 	}
 	responseBytes, _ := json.Marshal(response)
 	w.Header().Set("Content-type", "application/json")

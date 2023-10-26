@@ -1,0 +1,16 @@
+---
+apiVersion: core.openfunction.io/v1beta2
+kind: Function
+metadata:
+  name: silly-demo
+spec:
+  version: "v1.0.0"
+  image: "c8n.io/vfarcic/silly-demo:1.4.58"
+  serving:
+    template:
+      containers:
+        - name: function
+          imagePullPolicy: IfNotPresent
+    triggers:
+      http:
+        port: 8080
