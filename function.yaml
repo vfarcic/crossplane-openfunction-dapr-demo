@@ -6,17 +6,10 @@ metadata:
 spec:
   version: "v2.0.0"
   image: "c8n.io/vfarcic/openfunction-demo:v0.0.1"
-  imageCredentials:
-    name: push-secret
-  build:
-    builder: openfunction/builder-go:v2.4.0-1.17
-    env:
-      FUNC_NAME: SillyDemo
-      FUNC_CLEAR_SOURCE: "true"
-    srcRepo:
-      url: "https://github.com/vfarcic/openfunction-demo.git"
-      revision: "main"
   serving:
+    annotations:
+      openfunction.io/enable-dapr: "true"
+      openfunction.io/dapr-service-mode: "standalone"
     template:
       containers:
         - name: function # DO NOT change this
@@ -31,10 +24,7 @@ spec:
             - name: DB_NAME
               value: app
             - name: DB_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: openfunction-demo-db-app
-                  key: password
+              value: "password"
     triggers:
       http:
         port: 8080

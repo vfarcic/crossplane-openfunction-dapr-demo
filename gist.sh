@@ -141,15 +141,35 @@ kubectl --namespace a-team get pods
 # Kubernetes Applications With OpenFunction #
 #############################################
 
-cat app-no-build.yaml
+## Statestore component for Dapr
+### Before applying this resource make sure to update the connection string with the right value from the secret, get the password by running: 
 
-cat app.yaml
+kubectl get secrets/openfunction-demo-db-app -n a-team --template={{.data.password}} | base64 -D
 
-kubectl --namespace a-team apply --filename app.yaml
+### Alternatively we can create a new secret to contain the whole connection string based on the secret called: openfunction-demo-db-app, that was created by PostgreSQL
+
+kubectl --namespace a-team apply --filename dapr.yaml
+
+cat app-no-build.yaml # The app-no-build.yaml contains references to the docker image that uses the Dapr APIs to connect to the configured Dapr Statestore
+
+kubectl --namespace a-team apply --filename app-no-build.yaml
 
 kubectl --namespace a-team get functions
 
 kubectl --namespace a-team get all
+
+## Getting URL 
+
+kubectl get ksvc --namespace a-team
+
+# Replace `[...]` with the `URL`
+export EXTERNAL_URL=[...]
+
+curl "$EXTERNAL_URL"
+
+curl -X POST "$EXTERNAL_URL/video?id=1&title=An%20Amazing%20Video"
+
+curl "$EXTERNAL_URL/videos" | jq .
 
 ###########
 # Destroy #

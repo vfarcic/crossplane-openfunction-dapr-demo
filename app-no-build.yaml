@@ -5,12 +5,18 @@ metadata:
   name: silly-demo
 spec:
   version: "v1.0.0"
-  image: "c8n.io/vfarcic/silly-demo:1.4.58"
+  image: "salaboy/silly-demo:0.1.3"
   serving:
+    annotations:
+      openfunction.io/enable-dapr: "true"
+      openfunction.io/dapr-service-mode: "sidecar"
     template:
       containers:
         - name: function
           imagePullPolicy: IfNotPresent
+          env:
+            - name: STATESTORE_NAME
+              value: openfunction-demo-db
     triggers:
       http:
         port: 8080
