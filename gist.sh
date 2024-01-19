@@ -2,6 +2,10 @@
 # Setup #
 #########
 
+FIXME: Test in Google Cloud
+FIXME: Test in AWS
+FIXME: Test in Azure
+
 # Make sure that Docker Desktop is up-and-running.
 
 # Watch https://youtu.be/BII6ZY2Rnlc if you are not familiar with GitHub CLI (`gh`).
