@@ -75,30 +75,6 @@ kind create cluster
 
 kubectl create namespace a-team
 
-############
-# Registry #
-############
-
-kubectl --namespace a-team \
-    create secret docker-registry push-secret \
-    --docker-server=$REGISTRY_SERVER \
-    --docker-username=$REGISTRY_USER \
-    --docker-password=$REGISTRY_PASSWORD
-
-REGISTRY_AUTH=$(kubectl --namespace a-team \
-    get secret push-secret \
-    --output jsonpath='{.data.\.dockerconfigjson}' | base64 -d)
-
-kubectl --namespace a-team delete secret push-secret
-
-if [[ "$HYPERSCALER" == "google" ]]; then
-
-    echo -ne $REGISTRY_AUTH \
-        | gcloud secrets --project $PROJECT_ID \
-        create registry-auth --data-file=-
-
-fi
-
 ##############
 # Crossplane #
 ##############
@@ -225,6 +201,30 @@ elif [[ "$HYPERSCALER" == "azure" ]]; then
 
     kubectl apply \
         --filename crossplane-packages/azure-config.yaml
+
+fi
+
+############
+# Registry #
+############
+
+kubectl --namespace a-team \
+    create secret docker-registry push-secret \
+    --docker-server=$REGISTRY_SERVER \
+    --docker-username=$REGISTRY_USER \
+    --docker-password=$REGISTRY_PASSWORD
+
+REGISTRY_AUTH=$(kubectl --namespace a-team \
+    get secret push-secret \
+    --output jsonpath='{.data.\.dockerconfigjson}' | base64 -d)
+
+kubectl --namespace a-team delete secret push-secret
+
+if [[ "$HYPERSCALER" == "google" ]]; then
+
+    echo -ne $REGISTRY_AUTH \
+        | gcloud secrets --project $PROJECT_ID \
+        create registry-auth --data-file=-
 
 fi
 

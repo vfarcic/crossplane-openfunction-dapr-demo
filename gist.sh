@@ -32,8 +32,6 @@ chmod +x setup.sh
 
 ./setup.sh
 
-# FIXME: Copy `gcp-creds` secret to the remote cluster
-
 # FIXME: Add it to the remote cluster
 kubectl apply --filename xxx.yaml
 
@@ -41,8 +39,6 @@ kubectl get clustersecretstores
 
 # FIXME: Add it to the remote cluster
 kubectl --namespace a-team apply --filename yyy.yaml
-
-kubectl --namespace a-team get externalsecrets
 
 
 
@@ -96,6 +92,16 @@ az aks get-credentials --resource-group cluster-01 \
     --name cluster-01 --file $KUBECONFIG
 
 kubectl get namespaces
+
+helm ls --all-namespaces
+
+kubectl get clustersecretstores
+
+kubectl --namespace crossplane-system get externalsecrets
+
+kubectl --namespace crossplane-system get secrets
+
+# FIXME: Copy `gcp-creds` secret to the remote cluster
 
 #########################################
 # Functions in Docker With OpenFunction #
