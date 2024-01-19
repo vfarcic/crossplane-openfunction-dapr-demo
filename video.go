@@ -1,73 +1,52 @@
 package sillydemo
 
 import (
+	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 
-	"github.com/go-pg/pg"
+	dapr "github.com/dapr/go-sdk/client"
 )
-
-var dbSession *pg.DB = nil
 
 type Video struct {
 	ID    string `json:"id"`
 	Title string `json:"title"`
 }
 
-func getDB() (*pg.DB, string) {
-	if dbSession != nil {
-		return dbSession, ""
-	}
-	endpoint := os.Getenv("DB_ENDPOINT")
-	if len(endpoint) == 0 {
-		return nil, "Environment variable `DB_ENDPOINT` is empty"
-	}
-	port := os.Getenv("DB_PORT")
-	if len(port) == 0 {
-		return nil, "Environment variable `DB_PORT` is empty"
-	}
-	user := os.Getenv("DB_USER")
-	if len(user) == 0 {
-		user = os.Getenv("DB_USERNAME")
-		if len(user) == 0 {
-			return nil, "Environment variables `DB_USER` and `DB_USERNAME` are empty"
-		}
-	}
-	pass := os.Getenv("DB_PASS")
-	if len(pass) == 0 {
-		pass = os.Getenv("DB_PASSWORD")
-		if len(pass) == 0 {
-			return nil, "Environment variables `DB_PASS` and `DB_PASSWORD are empty"
-		}
-	}
-	name := os.Getenv("DB_NAME")
-	if len(name) == 0 {
-		return nil, "Environment variable `DB_NAME` is empty"
-	}
-	dbSession := pg.Connect(&pg.Options{
-		Addr:     endpoint + ":" + port,
-		User:     user,
-		Password: pass,
-		Database: name,
-	})
-	return dbSession, ""
-}
+var (
+	KEY             = "VIDEOS"
+	STATESTORE_NAME = getEnv("STATESTORE_NAME", "videos-statestore")
+	PUBSUB_NAME     = getEnv("PUBSUB_NAME", "videos-pubsub")
+	PUBSUB_TOPIC    = getEnv("PUBSUB_TOPIC", "videos-topic")
+)
 
 func VideosHandler(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
+	ctx := context.Background()
 	errorMessage := ""
-	var videos []Video
-	db, errorMessage := getDB()
-	if db == nil {
-		status = http.StatusBadRequest
-	} else {
-		err := db.Model(&videos).Select()
+	client, err := dapr.NewClient()
+
+	if err != nil {
+		errorMessage = "1)" + err.Error()
+	}
+
+	videoStateItems, err := client.GetState(ctx, STATESTORE_NAME, KEY, nil)
+	if err != nil {
+		errorMessage = "2)" + err.Error()
+	}
+
+	videos := []Video{}
+	if videoStateItems != nil && len(videoStateItems.Value) > 0 {
+		log.Default().Printf("Values: %s ", videoStateItems.Value)
+		err = json.Unmarshal(videoStateItems.Value, &videos)
 		if err != nil {
-			errorMessage = err.Error()
+			errorMessage = "3)" + err.Error()
 		}
 	}
+
 	w.Header().Set("Content-type", "application/json")
+	status := http.StatusOK
 	w.WriteHeader(status)
 	if len(errorMessage) > 0 {
 		status = http.StatusBadRequest
@@ -80,9 +59,15 @@ func VideosHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func VideoHandler(w http.ResponseWriter, r *http.Request) {
-	var db *pg.DB
-	status := http.StatusOK
+
+	ctx := context.Background()
 	errorMessage := ""
+	client, err := dapr.NewClient()
+
+	if err != nil {
+		errorMessage = err.Error()
+	}
+
 	id, ok := r.URL.Query()["id"]
 	if !ok {
 		errorMessage = "Query parameter `id` is missing"
@@ -91,21 +76,39 @@ func VideoHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		errorMessage = "Query parameter `title` is missing"
 	}
+
+	videos := []Video{}
+
+	videoStateItems, err := client.GetState(ctx, STATESTORE_NAME, KEY, nil)
+	if err != nil {
+		errorMessage = "1)" + err.Error()
+	}
+
+	if videoStateItems != nil && len(videoStateItems.Value) > 0 {
+		err = json.Unmarshal(videoStateItems.Value, &videos)
+		if err != nil {
+			errorMessage = "2)" + err.Error()
+		}
+	}
+
 	if len(errorMessage) == 0 {
-		video := &Video{
+		var video = Video{
 			ID:    id[0],
 			Title: title[0],
 		}
-		db, errorMessage = getDB()
-		if db == nil {
-			errorMessage = "Could not connect to the database"
-		} else {
-			_, err := db.Model(video).Insert()
-			if err != nil {
-				errorMessage = err.Error()
-			}
+
+		videos = append(videos, video)
+
+		jsonData, err := json.Marshal(videos)
+		if err != nil {
+			errorMessage = "3)" + err.Error()
+		}
+
+		if err := client.SaveState(ctx, STATESTORE_NAME, KEY, jsonData, nil); err != nil {
+			errorMessage = "4)" + err.Error()
 		}
 	}
+	status := http.StatusOK
 	if len(errorMessage) > 0 {
 		status = http.StatusBadRequest
 	}
@@ -116,4 +119,12 @@ func VideoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(status)
 	w.Write(responseBytes)
+}
+
+func getEnv(key, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = fallback
+	}
+	return value
 }

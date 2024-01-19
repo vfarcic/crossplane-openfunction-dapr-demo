@@ -7,4 +7,5 @@ spec:
   version: v1
   metadata:
     - name: connectionString
-      value: "URL"
+      value: "host=openfunction-demo-db-rw user=app password=Hyyxg9Gg0C1Ia1Hv9tdPDIlgLotNizC4HkdjJ4ugibXnAtsq5uOzbdwDN2AXJ8fN port=5432 connect_timeout=10 database=app"
+
