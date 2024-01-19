@@ -24,15 +24,19 @@ chmod +x setup.sh
 
 ./setup.sh
 
-# FIXME: Move to the script
-kubectl --namespace a-team create secret \
-    docker-registry push-secret \
+# FIXME: Move to the Compositions
+kubectl --namespace a-team \
+    create secret docker-registry push-secret \
     --docker-server=$REGISTRY_SERVER \
     --docker-username=$REGISTRY_USER \
     --docker-password=$REGISTRY_PASSWORD
 
-# FIXME: Move to the script
+# FIXME: Move to the Compositions
 kubectl --namespace a-team apply --filename db.yaml
+
+# FIXME: Push DB secret to secret store from the control plane cluster
+
+# FIXME: Pull DB secret from secret store to the apps cluster
 
 # FIXME: Move to the script
 yq --inplace ".spec.build.srcRepo.url = \"https://github.com/$GITHUB_ORG/openfunction-demo.git\"" \
