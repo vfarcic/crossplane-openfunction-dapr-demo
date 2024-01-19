@@ -19,3 +19,7 @@ spec:
         enabled: true
       externalSecrets:
         enabled: true
+    creds:
+      name: gcp-creds
+      namespace: crossplane-system
+      key: creds
