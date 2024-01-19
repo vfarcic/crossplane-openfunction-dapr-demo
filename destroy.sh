@@ -54,3 +54,5 @@ if [[ "$HYPERSCALER" == "google" ]]; then
     gcloud projects delete $PROJECT_ID --quiet
 
 fi
+
+kind delete cluster
