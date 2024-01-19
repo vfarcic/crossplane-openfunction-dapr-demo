@@ -3,8 +3,10 @@ providers:
   google_secretmanager:
     env:
       REGISTRY_SERVER:
-        path: projects/vfarcic/secrets/c8n-registry/versions/1
+        path: projects/vfarcic/secrets/github-registry/versions/1
       REGISTRY_USER:
-        path: projects/vfarcic/secrets/c8n-user/versions/1
+        path: projects/vfarcic/secrets/github-user/versions/1
       REGISTRY_PASSWORD:
-        path: projects/vfarcic/secrets/c8n-secret/versions/1
+        path: projects/vfarcic/secrets/github-token/versions/2
+      AZURE_TENANT_ID:
+        path: projects/vfarcic/secrets/azure-tenant/versions/1

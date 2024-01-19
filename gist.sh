@@ -2,73 +2,78 @@
 # Setup #
 #########
 
-# Create a remote Kubernetes cluster (do NOT use a local
-#   cluster like Minikube, KinD, ...).
-
 # Make sure that Docker Desktop is up-and-running.
 
-# Install `pack` CLI by following the instructions at
-#   https://buildpacks.io/docs/tools/pack/#pack-cli.
+# Watch https://youtu.be/BII6ZY2Rnlc if you are not familiar with GitHub CLI (`gh`).
+gh repo fork vfarcic/crossplane-openfunction-dapr-demo \
+    --clone --remote
 
-# Install `yq` CLI by following the instructions at
-#   https://github.com/mikefarah/yq.
-
-# Install `jq` CLI by following the instructions at
-#   https://stedolan.github.io/jq/download.
-
-# Replace `[...]` with your GitHub organization or user.
-export GITHUB_ORG=[...]
-
-# Replace `[...]` with your container image registry server
-#   (e.g., `c8n.io/vfarcic`).
-export REGISTRY_SERVER=[...]
-
-# Replace `[...]` with your container image registry user.
-export REGISTRY_USER=[...]
-
-# Replace `[...]` with your container image registry password.
-export REGISTRY_PASSWORD=[...]
-
-git clone https://github.com/vfarcic/openfunction-demo
-
-cd openfunction-demo
+cd crossplane-openfunction-dapr-demo
 
 gh repo set-default
 
 # Select the fork as the default repository
 
-helm upgrade --install openfunction openfunction \
-    --repo https://openfunction.github.io/charts \
-    --namespace openfunction --create-namespace \
-    --set revisionController.enable=true --wait
+# Watch FIXME: if you are not familiar with Nix.
+# As an alternative, you can skip using Nix Shell but, in that
+#   case you need to make sure that you are all the CLIs used in
+#   this demo.
+nix-shell --run $SHELL
 
-# Watch https://youtu.be/Ny9RxM6H6Hg if you are not familiar with
-#   CloudNativePG (CNPG).
-helm upgrade --install cnpg cloudnative-pg \
-    --repo https://cloudnative-pg.github.io/charts \
-    --namespace cnpg-system --create-namespace --wait
+chmod +x setup.sh
 
-# Watch https://youtu.be/1iZoEFzlvhM if you are not familiar with
-#   Atlas Operator.
-helm upgrade --install atlas-operator \
-    oci://ghcr.io/ariga/charts/atlas-operator \
-    --namespace atlas-operator --create-namespace --wait
+./setup.sh
 
-kubectl create namespace a-team
-
+# FIXME: Move to the script
 kubectl --namespace a-team create secret \
     docker-registry push-secret \
     --docker-server=$REGISTRY_SERVER \
     --docker-username=$REGISTRY_USER \
     --docker-password=$REGISTRY_PASSWORD
 
+# FIXME: Move to the script
 kubectl --namespace a-team apply --filename db.yaml
 
+# FIXME: Move to the script
 yq --inplace ".spec.build.srcRepo.url = \"https://github.com/$GITHUB_ORG/openfunction-demo.git\"" \
     function.yaml
 
+# FIXME: Move to the script
 yq --inplace ".spec.image = \"$REGISTRY_SERVER/openfunction-demo:v0.0.1\"" \
     function.yaml
+
+source .env
+
+###########################
+# Cluster with Everything #
+###########################
+
+# Open https://marketplace.upbound.io/configurations/devops-toolkit/dot-kubernetes/v0.12.3/xrds in a browser
+
+cat cluster/$HYPERSCALER.yaml
+
+kubectl --namespace a-team apply \
+    --filename cluster/$HYPERSCALER.yaml
+
+crossplane beta trace clusterclaim cluster --namespace a-team
+
+# Wait until all the resources are available
+
+export KUBECONFIG=$PWD/kubeconfig.yaml
+
+# Execute only if using Google Cloud
+gcloud container clusters get-credentials a-team-cluster \
+    --region us-east1 --project $PROJECT_ID
+
+# Execute only if using AWS
+aws eks update-kubeconfig --region us-east-1 \
+    --name cluster-01 --kubeconfig $KUBECONFIG
+
+# Execute only if using Azure
+az aks get-credentials --resource-group cluster-01 \
+    --name cluster-01 --file $KUBECONFIG
+
+kubectl get namespaces
 
 #########################################
 # Functions in Docker With OpenFunction #
@@ -155,4 +160,8 @@ kubectl --namespace a-team get all
 # Destroy #
 ###########
 
-# Destroy the cluster
+chmod +x destroy.sh
+
+./destroy.sh
+
+exit

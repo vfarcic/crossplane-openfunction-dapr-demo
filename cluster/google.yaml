@@ -1,0 +1,18 @@
+apiVersion: devopstoolkitseries.com/v1alpha1
+kind: ClusterClaim
+metadata:
+  name: cluster
+spec:
+  id: a-team-cluster
+  compositionSelector:
+    matchLabels:
+      provider: google
+      cluster: gke
+  parameters:
+    nodeSize: medium
+    minNodeCount: 1
+    namespaces:
+      - dev
+      - production
+    apps:
+      openfunction: true
