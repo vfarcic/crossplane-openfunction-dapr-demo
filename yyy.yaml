@@ -1,0 +1,15 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: push-secret
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: google
+  target:
+    name: push-secret
+    creationPolicy: Owner
+  dataFrom:
+  - extract:
+      key: registry-auth

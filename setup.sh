@@ -75,6 +75,30 @@ kind create cluster
 
 kubectl create namespace a-team
 
+############
+# Registry #
+############
+
+kubectl --namespace a-team \
+    create secret docker-registry push-secret \
+    --docker-server=$REGISTRY_SERVER \
+    --docker-username=$REGISTRY_USER \
+    --docker-password=$REGISTRY_PASSWORD
+
+REGISTRY_AUTH=$(kubectl --namespace a-team \
+    get secret push-secret \
+    --output jsonpath='{.data.\.dockerconfigjson}' | base64 -d)
+
+kubectl --namespace a-team delete secret push-secret
+
+if [[ "$HYPERSCALER" == "google" ]]; then
+
+    echo -ne $REGISTRY_AUTH \
+        | gcloud secrets --project $PROJECT_ID \
+        create registry-auth --data-file=-
+
+fi
+
 ##############
 # Crossplane #
 ##############
@@ -106,11 +130,15 @@ if [[ "$HYPERSCALER" == "google" ]]; then
 
     gcloud components install gke-gcloud-auth-plugin
 
+    # Project
+
     PROJECT_ID=dot-$(date +%Y%m%d%H%M%S)
 
     echo "export PROJECT_ID=$PROJECT_ID" >> .env
 
     gcloud projects create ${PROJECT_ID}
+
+    # APIs
 
     echo "## Open https://console.cloud.google.com/marketplace/product/google/container.googleapis.com?project=$PROJECT_ID in a browser and *ENABLE* the API." \
         | gum format
@@ -123,6 +151,8 @@ echo "## Open https://console.cloud.google.com/marketplace/product/google/secret
 
     gum input --placeholder "
 Press the enter key to continue."
+
+    # Service Account (general)
 
     export SA_NAME=devops-toolkit
 
@@ -142,6 +172,8 @@ Press the enter key to continue."
     kubectl --namespace crossplane-system \
         create secret generic gcp-creds \
         --from-file creds=./gcp-creds.json
+
+    # Crossplane
 
     yq --inplace ".spec.projectID = \"$PROJECT_ID\"" \
         crossplane-packages/google-config.yaml

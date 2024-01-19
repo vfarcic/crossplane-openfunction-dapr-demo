@@ -32,12 +32,22 @@ chmod +x setup.sh
 
 ./setup.sh
 
-# FIXME: Move to the Compositions
-kubectl --namespace a-team \
-    create secret docker-registry push-secret \
-    --docker-server=$REGISTRY_SERVER \
-    --docker-username=$REGISTRY_USER \
-    --docker-password=$REGISTRY_PASSWORD
+# FIXME: Copy `gcp-creds` secret to the remote cluster
+
+# FIXME: Add it to the remote cluster
+kubectl apply --filename xxx.yaml
+
+kubectl get clustersecretstores
+
+# FIXME: Add it to the remote cluster
+kubectl --namespace a-team apply --filename yyy.yaml
+
+kubectl --namespace a-team get externalsecrets
+
+
+
+
+
 
 # FIXME: Move to the Compositions
 kubectl --namespace a-team apply --filename db.yaml
