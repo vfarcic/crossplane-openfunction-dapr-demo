@@ -118,6 +118,12 @@ if [[ "$HYPERSCALER" == "google" ]]; then
     gum input --placeholder "
 Press the enter key to continue."
 
+echo "## Open https://console.cloud.google.com/marketplace/product/google/secretmanager.googleapis.com?project=$PROJECT_ID in a browser and *ENABLE* the API." \
+        | gum format
+
+    gum input --placeholder "
+Press the enter key to continue."
+
     export SA_NAME=devops-toolkit
 
     export SA="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"

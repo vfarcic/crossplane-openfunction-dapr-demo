@@ -2,8 +2,12 @@
 # Setup #
 #########
 
-FIXME: Test in Google Cloud
+FIXME: Add secrets to AWS
+
 FIXME: Test in AWS
+
+FIXME: Add secrets to Azure
+
 FIXME: Test in Azure
 
 # Make sure that Docker Desktop is up-and-running.
