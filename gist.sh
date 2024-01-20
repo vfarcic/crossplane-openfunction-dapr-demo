@@ -98,8 +98,6 @@ kubectl --namespace crossplane-system get externalsecrets
 
 kubectl --namespace crossplane-system get secrets
 
-# FIXME: Copy `gcp-creds` secret to the remote cluster
-
 #########################################
 # Functions in Docker With OpenFunction #
 #########################################
