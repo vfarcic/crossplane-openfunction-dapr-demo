@@ -32,9 +32,6 @@ chmod +x setup.sh
 
 ./setup.sh
 
-# FIXME: Add it to the remote cluster
-kubectl apply --filename xxx.yaml
-
 kubectl get clustersecretstores
 
 # FIXME: Add it to the remote cluster
