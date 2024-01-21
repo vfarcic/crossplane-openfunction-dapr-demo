@@ -105,7 +105,7 @@ kubectl --namespace a-team get secrets
 
 kubectl --namespace a-team get pushsecrets
 
-# FIXME: Show the secret in the hyperscaler console
+# Open the hyperscaler console and confirm that the secret with DB auth was pushed.
 
 export KUBECONFIG=$PWD/kubeconfig.yaml
 
@@ -113,6 +113,8 @@ kubectl --namespace production \
     get externalsecrets.external-secrets.io
 
 kubectl --namespace production get secrets
+
+# FIXME: Create a video about Secrets
 
 #########################################
 # Functions in Docker With OpenFunction #
@@ -137,6 +139,8 @@ docker container rm openfunction-demo --force
 ##########################################
 # Kubernetes Functions With OpenFunction #
 ##########################################
+
+# FIXME: Move to the App Composition
 
 cat function.yaml
 

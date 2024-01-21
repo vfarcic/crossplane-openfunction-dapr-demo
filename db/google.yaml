@@ -18,6 +18,8 @@ spec:
       storeName: google
       pullKey: db-password
       pushToStore: true
+      pullToCluster: a-team-cluster
+      pullToClusterNamespace: production
     schemas:
       - database: my-db
         sql: |
