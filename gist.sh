@@ -2,11 +2,7 @@
 # Setup #
 #########
 
-FIXME: Add secrets to AWS
-
 FIXME: Test in AWS
-
-FIXME: Add secrets to Azure
 
 FIXME: Test in Azure
 
@@ -23,6 +19,8 @@ gh repo set-default
 # Select the fork as the default repository
 
 # Watch FIXME: if you are not familiar with Nix.
+# Nix Shell will install all the tools, except `gcloud` (if you
+#    choose to use Google Cloud),)
 # As an alternative, you can skip using Nix Shell but, in that
 #   case you need to make sure that you are all the CLIs used in
 #   this demo.
@@ -32,10 +30,8 @@ chmod +x setup.sh
 
 ./setup.sh
 
-kubectl get clustersecretstores
+source .env
 
-# FIXME: Add it to the remote cluster
-kubectl --namespace a-team apply --filename yyy.yaml
 
 
 
@@ -94,7 +90,8 @@ helm ls --all-namespaces
 
 kubectl get clustersecretstores
 
-kubectl --namespace crossplane-system get externalsecrets
+kubectl --namespace crossplane-system \
+    get externalsecrets.external-secrets.io
 
 kubectl --namespace crossplane-system get secrets
 

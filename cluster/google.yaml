@@ -21,7 +21,12 @@ spec:
       externalSecrets:
         enabled: true
         store: true
+        googleCredentialsKey: creds
+        secrets:
+          - fromSecret: registry-auth
+            toSecret: push-secret
     creds:
       name: gcp-creds
       namespace: crossplane-system
-      key: creds
+      keys:
+        - creds

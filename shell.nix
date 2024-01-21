@@ -15,6 +15,8 @@ pkgs.mkShell {
     jq
     bat
     buildpack
+    azure-cli
+    awscli2
   ];
   shellHook =
   ''

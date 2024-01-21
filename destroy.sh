@@ -22,8 +22,9 @@ echo "
 |Docker          |Yes                  |'https://docs.docker.com/engine/install'           |
 |kubectl CLI     |Yes                  |'https://kubernetes.io/docs/tasks/tools/#kubectl'  |
 |kind CLI        |Yes                  |'https://kind.sigs.k8s.io/docs/user/quick-start/#installation'|
+|Google Cloud CLI|If using Google Cloud|'https://cloud.google.com/sdk/docs/install'        |
 
-If you are running this script from **Nix shell**, most of the requirements are already set with the exception of **Docker**.
+If you are running this script from **Nix shell**, most of the requirements are already set with the exception of **Docker** and **gcloud CLI**.
 " | gum format
 
 gum confirm "
