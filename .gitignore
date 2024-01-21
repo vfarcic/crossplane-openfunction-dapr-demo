@@ -5,3 +5,4 @@
 /aws-creds.conf
 /azure-creds.json
 /bin
+/.env
