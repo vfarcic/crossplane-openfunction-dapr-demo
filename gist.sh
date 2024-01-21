@@ -38,13 +38,6 @@ source .env
 
 
 
-# FIXME: Move to the Compositions
-kubectl --namespace a-team apply --filename db.yaml
-
-# FIXME: Push DB secret to secret store from the control plane cluster
-
-# FIXME: Pull DB secret from secret store to the apps cluster
-
 # FIXME: Move to the script
 yq --inplace ".spec.build.srcRepo.url = \"https://github.com/$GITHUB_ORG/openfunction-demo.git\"" \
     function.yaml
@@ -99,13 +92,27 @@ kubectl --namespace crossplane-system get secrets
 
 cat db/$HYPERSCALER.yaml
 
-# FIXME: Use external secret intead
-
 unset KUBECONFIG
 
 kubectl --namespace a-team apply --filename db/$HYPERSCALER.yaml
 
 crossplane beta trace sqlclaim my-db --namespace a-team
+
+kubectl --namespace a-team \
+    get externalsecrets.external-secrets.io
+
+kubectl --namespace a-team get secrets
+
+kubectl --namespace a-team get pushsecrets
+
+# FIXME: Show the secret in the hyperscaler console
+
+export KUBECONFIG=$PWD/kubeconfig.yaml
+
+kubectl --namespace production \
+    get externalsecrets.external-secrets.io
+
+kubectl --namespace production get secrets
 
 #########################################
 # Functions in Docker With OpenFunction #

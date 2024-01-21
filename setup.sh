@@ -135,7 +135,7 @@ echo "## Open https://console.cloud.google.com/marketplace/product/google/secret
     gum input --placeholder "
 Press the enter key to continue."
 
-echo "## Open https://console.developers.google.com/apis/api/sqladmin.googleapis.com/overview?project=$PROJECT_ID in a browser and *ENABLE* the API." \
+echo "## Open https://console.cloud.google.com/apis/library/sqladmin.googleapis.com?project=$PROJECT_ID in a browser and *ENABLE* the API." \
         | gum format
 
     gum input --placeholder "
@@ -239,6 +239,10 @@ if [[ "$HYPERSCALER" == "google" ]]; then
         | gcloud secrets --project $PROJECT_ID \
         create registry-auth --data-file=-
 
+    # FIXME: AWS
+
+    # FIXME: Azure
+
 fi
 
 ##################
@@ -262,6 +266,14 @@ if [[ "$HYPERSCALER" == "google" ]]; then
     yq --inplace \
         ".spec.provider.gcpsm.projectID = \"$PROJECT_ID\"" \
         external-secrets/google.yaml
+
+    echo -ne "{\"password\": \"IWillNeverTell\" }" \
+        | gcloud secrets --project $PROJECT_ID \
+        create db-password --data-file=-
+
+    # FIXME: AWS
+
+    # FIXME: Azure
 
 fi
 
