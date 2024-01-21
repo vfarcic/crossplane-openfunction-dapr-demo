@@ -1,0 +1,26 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"external-secrets.io/v1beta1","kind":"ExternalSecret","metadata":{"name":"push-secret","namespace":"production"},"spec":{"dataFrom":[{"extract":{"key":"registry-auth"}}],"refreshInterval":"1h","secretStoreRef":{"kind":"ClusterSecretStore","name":"google"},"target":{"creationPolicy":"Owner","name":"push-secret"}}}'
+  creationTimestamp: "2024-01-21T11:52:58Z"
+  generation: 1
+  name: push-secret
+  namespace: production
+  resourceVersion: "77549"
+  uid: 8ba1fe0a-d615-4942-b673-5dd0a0bc9023
+spec:
+  dataFrom:
+  - extract:
+      conversionStrategy: Default
+      decodingStrategy: None
+      key: registry-auth
+      metadataPolicy: None
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: google
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: push-secret

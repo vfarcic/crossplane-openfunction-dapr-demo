@@ -1,0 +1,24 @@
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: pushsecret-example
+spec:
+  deletionPolicy: Delete
+  refreshInterval: 1h
+  secretStoreRefs:
+    - name: google
+      kind: ClusterSecretStore
+  selector:
+    secret:
+      name: a-team-cluster-cluster
+  template:
+    metadata:
+      annotations: { }
+      labels: { }
+    data:
+      kubeconfig: "{\"kubeconfig\": { {{ .kubeconfig }}, \"xxx\": { \"yyy\" } }"
+  data:
+    - match:
+        secretKey: kubeconfig
+        remoteRef:
+          remoteKey: a-team-cluster-cluster

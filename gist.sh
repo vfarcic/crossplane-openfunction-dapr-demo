@@ -53,8 +53,6 @@ yq --inplace ".spec.build.srcRepo.url = \"https://github.com/$GITHUB_ORG/openfun
 yq --inplace ".spec.image = \"$REGISTRY_SERVER/openfunction-demo:v0.0.1\"" \
     function.yaml
 
-source .env
-
 ###########################
 # Cluster with Everything #
 ###########################
@@ -90,7 +88,7 @@ helm ls --all-namespaces
 
 kubectl get clustersecretstores
 
-kubectl --namespace crossplane-system \
+kubectl --namespace production \
     get externalsecrets.external-secrets.io
 
 kubectl --namespace crossplane-system get secrets

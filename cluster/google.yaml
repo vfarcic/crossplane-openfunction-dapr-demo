@@ -25,6 +25,7 @@ spec:
         secrets:
           - fromSecret: registry-auth
             toSecret: push-secret
+            toNamespace: production
     creds:
       name: gcp-creds
       namespace: crossplane-system

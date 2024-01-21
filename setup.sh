@@ -225,7 +225,7 @@ kubectl --namespace a-team delete secret push-secret
 
 if [[ "$HYPERSCALER" == "google" ]]; then
 
-    echo -ne $REGISTRY_AUTH \
+    echo -ne "{\".dockerconfigjson\": $REGISTRY_AUTH }" \
         | gcloud secrets --project $PROJECT_ID \
         create registry-auth --data-file=-
 
@@ -238,3 +238,21 @@ fi
 helm upgrade --install atlas-operator \
     oci://ghcr.io/ariga/charts/atlas-operator \
     --namespace atlas-operator --create-namespace --wait
+
+####################
+# External Secrets #
+####################
+
+helm upgrade --install \
+    external-secrets external-secrets/external-secrets \
+    --namespace external-secrets --create-namespace --wait
+
+if [[ "$HYPERSCALER" == "google" ]]; then
+
+    yq --inplace \
+        ".spec.provider.gcpsm.projectID = \"$PROJECT_ID\"" \
+        external-secrets/google.yaml
+
+fi
+
+kubectl apply --filename external-secrets/$HYPERSCALER.yaml
