@@ -91,6 +91,8 @@ helm upgrade --install crossplane crossplane-stable/crossplane \
 
 kubectl apply --filename crossplane-packages/dot-kubernetes.yaml
 
+kubectl apply --filename crossplane-packages/dot-sql.yaml
+
 kubectl apply \
     --filename crossplane-packages/kubernetes-incluster.yaml
 
@@ -107,7 +109,9 @@ if [[ "$HYPERSCALER" == "google" ]]; then
 
     gcloud auth login
 
+    set +e
     gcloud components install gke-gcloud-auth-plugin
+    set -e
 
     # Project
 
@@ -126,6 +130,12 @@ if [[ "$HYPERSCALER" == "google" ]]; then
 Press the enter key to continue."
 
 echo "## Open https://console.cloud.google.com/marketplace/product/google/secretmanager.googleapis.com?project=$PROJECT_ID in a browser and *ENABLE* the API." \
+        | gum format
+
+    gum input --placeholder "
+Press the enter key to continue."
+
+echo "## Open https://console.developers.google.com/apis/api/sqladmin.googleapis.com/overview?project=$PROJECT_ID in a browser and *ENABLE* the API." \
         | gum format
 
     gum input --placeholder "

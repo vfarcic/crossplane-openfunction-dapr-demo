@@ -37,22 +37,27 @@ Do you have those tools installed?
 
 unset KUBECONFIG
 
-kubectl --namespace a-team delete \
-    --filename cluster/$HYPERSCALER.yaml
-
-COUNTER=$(kubectl get managed --no-headers | grep -v object \
-    | grep -v release | wc -l)
-
-while [ $COUNTER -ne 0 ]; do
-    echo "Waiting for all Crossplane managed resource to be deleted..."
-    sleep 10
-    COUNTER=$(kubectl get managed --no-headers | grep -v object \
-        | grep -v release | wc -l)
-done
-
 if [[ "$HYPERSCALER" == "google" ]]; then
 
     gcloud projects delete $PROJECT_ID --quiet
+
+else
+
+    kubectl --namespace a-team delete \
+        --filename cluster/$HYPERSCALER.yaml
+
+    kubectl --namespace a-team delete \
+        --filename db/$HYPERSCALER.yaml
+
+    COUNTER=$(kubectl get managed --no-headers | grep -v object \
+        | grep -v release | wc -l)
+
+    while [ $COUNTER -ne 0 ]; do
+        echo "Waiting for all Crossplane managed resource to be deleted..."
+        sleep 10
+        COUNTER=$(kubectl get managed --no-headers | grep -v object \
+            | grep -v release | wc -l)
+    done
 
 fi
 

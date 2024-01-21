@@ -93,6 +93,20 @@ kubectl --namespace production \
 
 kubectl --namespace crossplane-system get secrets
 
+############
+# Database #
+############
+
+cat db/$HYPERSCALER.yaml
+
+# FIXME: Use external secret intead
+
+unset KUBECONFIG
+
+kubectl --namespace a-team apply --filename db/$HYPERSCALER.yaml
+
+crossplane beta trace sqlclaim my-db --namespace a-team
+
 #########################################
 # Functions in Docker With OpenFunction #
 #########################################

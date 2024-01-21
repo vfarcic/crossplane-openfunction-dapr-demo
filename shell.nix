@@ -15,6 +15,7 @@ pkgs.mkShell {
     jq
     bat
     buildpack
+    google-cloud-sdk
     azure-cli
     awscli2
   ];
