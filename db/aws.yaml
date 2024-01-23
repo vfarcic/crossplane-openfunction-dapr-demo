@@ -7,15 +7,15 @@ spec:
   id: my-db
   compositionSelector:
     matchLabels:
-      provider: google
+      provider: aws
       db: postgresql
   parameters:
-    version: "15"
+    version: "14.10"
     size: medium
     databases:
       - my-db
     secrets:
-      storeName: google
+      storeName: aws
       pullRootPasswordKey: db-password
       pushToStore: true
       pullToCluster: a-team-cluster

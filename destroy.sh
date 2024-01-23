@@ -24,7 +24,7 @@ echo "
 |kind CLI        |Yes                  |'https://kind.sigs.k8s.io/docs/user/quick-start/#installation'|
 |Google Cloud CLI|If using Google Cloud|'https://cloud.google.com/sdk/docs/install'        |
 
-If you are running this script from **Nix shell**, most of the requirements are already set with the exception of **Docker** and **gcloud CLI**.
+If you are running this script from **Nix shell**, most of the requirements are already set with the exception of **Docker**.
 " | gum format
 
 gum confirm "
@@ -36,6 +36,12 @@ Do you have those tools installed?
 ##############
 
 unset KUBECONFIG
+
+if [[ "$HYPERSCALER" == "azure" ]]; then
+
+    az group delete --name $RESOURCE_GROUP --yes
+
+fi
 
 if [[ "$HYPERSCALER" == "google" ]]; then
 
@@ -50,13 +56,13 @@ else
         --filename db/$HYPERSCALER.yaml
 
     COUNTER=$(kubectl get managed --no-headers | grep -v object \
-        | grep -v release | wc -l)
+        | grep -v release | grep -v database | wc -l)
 
     while [ $COUNTER -ne 0 ]; do
         echo "Waiting for all Crossplane managed resource to be deleted..."
         sleep 10
         COUNTER=$(kubectl get managed --no-headers | grep -v object \
-            | grep -v release | wc -l)
+            | grep -v release | grep -v database| wc -l)
     done
 
 fi

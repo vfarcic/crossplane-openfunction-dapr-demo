@@ -30,12 +30,11 @@ echo "
 |pack CLI        |Yes                  |'https://buildpacks.io/docs/tools/pack'            |
 |Google Cloud account with admin permissions|If using Google Cloud|'https://cloud.google.com'|
 |Google Cloud CLI|If using Google Cloud|'https://cloud.google.com/sdk/docs/install'        |
+|gke-gcloud-auth-plugin|If using Google Cloud|'https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke'|
 |AWS account with admin permissions|If using AWS|'https://aws.amazon.com'                  |
 |AWS CLI         |If using AWS         |'https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html'|
-|Azure account with admin permissions|If using Azure|'https://azure.microsoft.com'         |
-|az CLI          |If using Azure       |'https://learn.microsoft.com/cli/azure/install-azure-cli'|
 
-If you are running this script from **Nix shell**, most of the requirements are already set with the exception of **Docker**, the **hyperscaler account**, and **gcloud CLI**.
+If you are running this script from **Nix shell**, most of the requirements are already set with the exception of **Docker** and the **hyperscaler account**.
 " | gum format
 
 gum confirm "
@@ -63,9 +62,12 @@ REGISTRY_PASSWORD=$(gum input \
     --placeholder "Container image registry password (e.g., ghcr.io/vfarcic)" \
     --value "$REGISTRY_PASSWORD")
 
+echo
 echo "## Which Hyperscaler do you want to use?" | gum format
+echo
+echo "Only Google Cloud and AWS are currently supported by this script. Please open an issue if you'd like to add others."
 
-HYPERSCALER=$(gum choose "google" "aws" "azure")
+HYPERSCALER=$(gum choose "google" "aws")
 
 echo "export HYPERSCALER=$HYPERSCALER" >> .env
 
@@ -188,32 +190,12 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 
     kubectl --namespace crossplane-system \
         create secret generic aws-creds \
-        --from-file creds=./aws-creds.conf
+        --from-file creds=./aws-creds.conf \
+        --from-literal accessKeyID=$AWS_ACCESS_KEY_ID \
+        --from-literal secretAccessKey=$AWS_SECRET_ACCESS_KEY
     
     kubectl apply \
         --filename crossplane-packages/aws-config.yaml
-
-elif [[ "$HYPERSCALER" == "azure" ]]; then
-
-    AZURE_TENANT_ID=$(gum input --placeholder "Azure Tenant ID" \
-        --value "$AZURE_TENANT_ID")
-
-    az login --tenant $AZURE_TENANT_ID
-
-    export LOCATION=eastus
-
-    export SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-
-    az ad sp create-for-rbac --sdk-auth --role Owner \
-        --scopes /subscriptions/$SUBSCRIPTION_ID \
-        | tee azure-creds.json
-
-    kubectl --namespace crossplane-system \
-        create secret generic azure-creds \
-        --from-file creds=./azure-creds.json
-
-    kubectl apply \
-        --filename crossplane-packages/azure-config.yaml
 
 fi
 
@@ -235,13 +217,17 @@ kubectl --namespace a-team delete secret push-secret
 
 if [[ "$HYPERSCALER" == "google" ]]; then
 
-    echo -ne "{\".dockerconfigjson\": $REGISTRY_AUTH }" \
+    echo "{\".dockerconfigjson\": $REGISTRY_AUTH }" \
         | gcloud secrets --project $PROJECT_ID \
         create registry-auth --data-file=-
 
-    # FIXME: AWS
+elif [[ "$HYPERSCALER" == "aws" ]]; then
 
-    # FIXME: Azure
+    set +e
+    aws secretsmanager create-secret \
+        --name registry-auth --region us-east-1 \
+        --secret-string "{\".dockerconfigjson\": $REGISTRY_AUTH }"
+    set -e
 
 fi
 
@@ -267,13 +253,17 @@ if [[ "$HYPERSCALER" == "google" ]]; then
         ".spec.provider.gcpsm.projectID = \"$PROJECT_ID\"" \
         external-secrets/google.yaml
 
-    echo -ne "{\"password\": \"IWillNeverTell\" }" \
+    echo "{\"password\": \"IWillNeverTell\" }" \
         | gcloud secrets --project $PROJECT_ID \
         create db-password --data-file=-
 
-    # FIXME: AWS
+elif [[ "$HYPERSCALER" == "aws" ]]; then
 
-    # FIXME: Azure
+    set +e
+    aws secretsmanager create-secret \
+        --name db-password --region us-east-1 \
+        --secret-string "{\"password\": \"IWillNeverTell\" }"
+    set -e
 
 fi
 

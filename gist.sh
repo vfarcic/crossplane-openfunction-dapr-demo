@@ -18,13 +18,16 @@ gh repo set-default
 
 # Select the fork as the default repository
 
+# Replace `[...]` with hyperscaler you'd like to use. Choices are: `aws`, `azure`, `google`.
+export HYPERSCALER=[...]
+
 # Watch FIXME: if you are not familiar with Nix.
 # Nix Shell will install all the tools, except `gcloud` (if you
 #    choose to use Google Cloud),)
 # As an alternative, you can skip using Nix Shell but, in that
 #   case you need to make sure that you are all the CLIs used in
 #   this demo.
-nix-shell --run $SHELL
+nix-shell --run $SHELL shell-$HYPERSCALER.nix
 
 chmod +x setup.sh
 
@@ -69,7 +72,7 @@ gcloud container clusters get-credentials a-team-cluster \
 
 # Execute only if using AWS
 aws eks update-kubeconfig --region us-east-1 \
-    --name cluster-01 --kubeconfig $KUBECONFIG
+    --name a-team-cluster --kubeconfig $KUBECONFIG
 
 # Execute only if using Azure
 az aks get-credentials --resource-group cluster-01 \
@@ -97,6 +100,35 @@ unset KUBECONFIG
 kubectl --namespace a-team apply --filename db/$HYPERSCALER.yaml
 
 crossplane beta trace sqlclaim my-db --namespace a-team
+
+export PGUSER=$(kubectl --namespace a-team \
+    get secret my-db --output jsonpath="{.data.username}" \
+    | base64 -d)
+
+export PGPASSWORD=$(kubectl --namespace a-team \
+    get secret my-db --output jsonpath="{.data.password}" \
+    | base64 -d)
+
+export PGHOST=$(kubectl --namespace a-team \
+    get secret my-db --output jsonpath="{.data.endpoint}" \
+    | base64 -d)
+
+kubectl run postgresql-client --rm -ti --restart='Never' \
+    --image docker.io/bitnami/postgresql:16 \
+    --env PGPASSWORD=$PGPASSWORD --env PGHOST=$PGHOST \
+    --env PGUSER=$PGUSER --command -- sh
+
+psql --host $PGHOST -U $PGUSER -d postgres -p 5432
+
+\l
+
+\c my-db
+
+\dt
+
+exit
+
+exit
 
 kubectl --namespace a-team \
     get externalsecrets.external-secrets.io

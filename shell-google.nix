@@ -16,8 +16,6 @@ pkgs.mkShell {
     bat
     buildpack
     (google-cloud-sdk.withExtraComponents [google-cloud-sdk.components.gke-gcloud-auth-plugin])
-    azure-cli
-    awscli2
   ];
   shellHook =
   ''
