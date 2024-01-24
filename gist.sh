@@ -140,8 +140,6 @@ kubectl --namespace production get secrets
 
 # FIXME: Remove the whole section?
 
-# FIXME: Move to the App Composition
-
 cat function.yaml
 
 kubectl --namespace production apply --filename function.yaml
