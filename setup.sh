@@ -43,16 +43,12 @@ Do you have those tools installed?
 
 rm -f .env
 
-#############
-# Variables #
-#############
+#########################
+# Variables & Manifests #
+#########################
 
 GITHUB_ORG=$(gum input --placeholder "GitHub Organization" \
     --value "$GITHUB_ORG")
-
-REGISTRY_SERVER=$(gum input \
-    --placeholder "Container image registry server (e.g., ghcr.io/vfarcic)" \
-    --value "$REGISTRY_SERVER")
 
 REGISTRY_USER=$(gum input \
     --placeholder "Container image registry username (e.g., ghcr.io/vfarcic)" \
@@ -62,14 +58,22 @@ REGISTRY_PASSWORD=$(gum input \
     --placeholder "Container image registry password (e.g., ghcr.io/vfarcic)" \
     --value "$REGISTRY_PASSWORD")
 
-echo
-echo "## Which Hyperscaler do you want to use?" | gum format
-echo
-echo "Only Google Cloud and AWS are currently supported by this script. Please open an issue if you'd like to add others."
+# echo
+# echo "## Which Hyperscaler do you want to use?" | gum format
+# echo
+# echo "Only Google Cloud and AWS are currently supported by this script. Please open an issue if you'd like to add others."
 
-HYPERSCALER=$(gum choose "google" "aws")
+# HYPERSCALER=$(gum choose "google" "aws")
 
 echo "export HYPERSCALER=$HYPERSCALER" >> .env
+
+yq --inplace \
+    ".spec.build.srcRepo.url = \"https://github.com/$GITHUB_ORG/crossplane-openfunction-dapr-demo.git\"" \
+    function.yaml
+
+yq --inplace ".spec.image = \"ttl.sh/crossplane-openfunction-dapr-demo:$(date +%Y%m%d%H%M%S)\"" \
+    function.yaml
+
 
 ###########
 # Cluster #

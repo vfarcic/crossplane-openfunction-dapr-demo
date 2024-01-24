@@ -5,7 +5,7 @@ metadata:
   name: openfunction-demo
 spec:
   version: "v2.0.0"
-  image: "c8n.io/vfarcic/openfunction-demo:v0.0.1"
+  image: "ttl.sh/crossplane-openfunction-dapr-demo:20240124014819"
   serving:
     annotations:
       openfunction.io/enable-dapr: "true"
@@ -28,3 +28,6 @@ spec:
     triggers:
       http:
         port: 8080
+  build:
+    srcRepo:
+      url: https://github.com/vfarcic/crossplane-openfunction-dapr-demo.git

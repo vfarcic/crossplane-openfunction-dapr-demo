@@ -35,19 +35,33 @@ Do you have those tools installed?
 # Crossplane #
 ##############
 
-unset KUBECONFIG
+if [[ "$HYPERSCALER" == "aws" ]]; then
 
-if [[ "$HYPERSCALER" == "azure" ]]; then
+    KUBECONFIG=$PWD/kubeconfig.yaml
 
-    az group delete --name $RESOURCE_GROUP --yes
+    # Contour created a LoadBalancer Service which, in turn,
+    #   created an AWS ELB. We need to delete the ELB to avoid
+    #   deleting a cluster first and leaving the ELB behind.
+    kubectl --namespace projectcontour \
+        delete service contour-envoy
 
 fi
+
+unset KUBECONFIG
 
 if [[ "$HYPERSCALER" == "google" ]]; then
 
     gcloud projects delete $PROJECT_ID --quiet
 
-else
+elif [[ "$HYPERSCALER" == "aws" ]]; then
+
+    # Crossplane will delete the secret, but, by default, AWS
+    #   only schedules it for deletion. 
+    # The command that follows removes the secret immediately
+    #   just in case you want to re-run the demo.
+    aws secretsmanager delete-secret --secret-id my-db \
+        --region us-east-1 --force-delete-without-recovery \
+        --no-cli-pager
 
     kubectl --namespace a-team delete \
         --filename cluster/$HYPERSCALER.yaml
