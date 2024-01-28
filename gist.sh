@@ -2,6 +2,8 @@
 # Setup #
 #########
 
+# FIXME: Change the status of `app-openfunction` resources
+
 # Make sure that Docker Desktop is up-and-running.
 
 # Watch https://youtu.be/BII6ZY2Rnlc if you are not familiar with GitHub CLI (`gh`).
@@ -17,9 +19,9 @@ gh repo set-default
 # Replace `[...]` with hyperscaler you'd like to use. Choices are: `aws` and `google`.
 export HYPERSCALER=[...]
 
+# Nix Shell will install all the tools required for this demo
+#   (except Docker).
 # Watch FIXME: if you are not familiar with Nix.
-# Nix Shell will install all the tools, except `gcloud` (if you
-#    choose to use Google Cloud),)
 # As an alternative, you can skip using Nix Shell but, in that
 #   case you need to make sure that you are all the CLIs used in
 #   this demo.
@@ -132,13 +134,9 @@ kubectl --namespace production \
 
 kubectl --namespace production get secrets
 
-# FIXME: Create a video about Secrets
-
 ##########################################
 # Kubernetes Functions With OpenFunction #
 ##########################################
-
-# FIXME: Remove the whole section?
 
 cat function.yaml
 

@@ -50,12 +50,16 @@ rm -f .env
 GITHUB_ORG=$(gum input --placeholder "GitHub Organization" \
     --value "$GITHUB_ORG")
 
+REGISTRY_SERVER=$(gum input \
+    --placeholder "Container image registry server (e.g., ghcr.io)" \
+    --value "$REGISTRY_SERVER")
+
 REGISTRY_USER=$(gum input \
-    --placeholder "Container image registry username (e.g., ghcr.io/vfarcic)" \
+    --placeholder "Container image registry username (e.g., vfarcic)" \
     --value "$REGISTRY_USER")
 
 REGISTRY_PASSWORD=$(gum input \
-    --placeholder "Container image registry password (e.g., ghcr.io/vfarcic)" \
+    --placeholder "Container image registry password (e.g., YouWillNeverFindOut)" \
     --value "$REGISTRY_PASSWORD")
 
 # echo
@@ -68,12 +72,11 @@ REGISTRY_PASSWORD=$(gum input \
 echo "export HYPERSCALER=$HYPERSCALER" >> .env
 
 yq --inplace \
-    ".spec.build.srcRepo.url = \"https://github.com/$GITHUB_ORG/crossplane-openfunction-dapr-demo.git\"" \
+    ".spec.build.srcRepo.url = \"https://github.com/$GITHUB_ORG/crossplane-openfunction-dapr-demo\"" \
     function.yaml
 
-yq --inplace ".spec.image = \"ttl.sh/crossplane-openfunction-dapr-demo:$(date +%Y%m%d%H%M%S)\"" \
+yq --inplace ".spec.image = \"$REGISTRY_SERVER/crossplane-openfunction-dapr-demo:v0.0.1\"" \
     function.yaml
-
 
 ###########
 # Cluster #
