@@ -75,7 +75,7 @@ yq --inplace \
     ".spec.build.srcRepo.url = \"https://github.com/$GITHUB_ORG/crossplane-openfunction-dapr-demo\"" \
     function.yaml
 
-yq --inplace ".spec.image = \"$REGISTRY_SERVER/crossplane-openfunction-dapr-demo:v0.0.1\"" \
+yq --inplace ".spec.image = \"$REGISTRY_SERVER/$REGISTRY_USER/crossplane-openfunction-dapr-demo:v0.0.1\"" \
     function.yaml
 
 ###########

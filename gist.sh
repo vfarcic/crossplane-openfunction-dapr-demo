@@ -138,6 +138,8 @@ kubectl --namespace production get secrets
 # Kubernetes Functions With OpenFunction #
 ##########################################
 
+# FIXME: Remove?
+
 cat function.yaml
 
 kubectl --namespace production apply --filename function.yaml
@@ -150,13 +152,10 @@ kubectl --namespace production get function openfunction-demo \
 kubectl --namespace production run curl \
     --image=radial/busyboxplus:curl -i --tty
 
-# Replace `[...]` with the `Internal` URL.
+# Replace `[...]` with the `External` URL.
 curl "[...]"
 
 exit
-
-# Replace `[...]` with the `External` URL.
-curl "[...]"
 
 kubectl --namespace production get routes
 
@@ -200,13 +199,15 @@ cat app-no-build.yaml # The app-no-build.yaml contains references to the docker 
 
 kubectl --namespace production apply --filename app-no-build.yaml
 
+# FIXME: Build the image
+
 kubectl --namespace production get functions
 
 kubectl --namespace production get all
 
 ## Getting URL 
 
-kubectl get ksvc --namespace production
+kubectl --namespace production get ksvc
 
 # Replace `[...]` with the `URL`
 export EXTERNAL_URL=[...]

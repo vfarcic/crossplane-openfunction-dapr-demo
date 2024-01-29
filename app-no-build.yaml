@@ -16,7 +16,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: STATESTORE_NAME
-              value: openfunction-demo-db
+              value: silly-demo
     triggers:
       http:
         port: 8080
