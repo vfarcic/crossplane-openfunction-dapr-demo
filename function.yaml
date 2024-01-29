@@ -11,34 +11,14 @@ spec:
   serving:
     annotations:
       openfunction.io/enable-dapr: "true"
-      openfunction.io/dapr-service-mode: "standalone"
+      openfunction.io/dapr-service-mode: "sidecar"
     template:
       containers:
         - name: function # DO NOT change this
           imagePullPolicy: IfNotPresent
           env:
-            - name: DB_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                  name: my-db
-                  key: endpoint
-            - name: DB_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: my-db
-                  key: port
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: my-db
-                  key: username
-            - name: DB_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: my-db
-                  key: password
-            - name: DB_NAME
-              value: my-db
+            - name: STATESTORE_NAME
+              value: my-db-my-db
     triggers:
       http:
         port: 8080

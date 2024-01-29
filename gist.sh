@@ -1,3 +1,19 @@
+# FIXME: Serverless: Here's source code, build it and run it. Scale it up and down depending on the load.
+
+# FIXME: Reference to the OpenFunction and Dapr videos.
+
+cat function.yaml
+
+# FIXME: Which cluster it runs in? Who created it? Can anyone create it?
+
+# FIXME: `spec.imageCredentials.name`: how did those credentials get into the cluster?
+
+# FIXME: Which database it uses? Who created it? Can anyone create it?
+
+# FIXME: `STATESTORE_NAME` env: How was it created? Who created it?
+
+# FIXME: It's all about being autonomous hence, we need Kubernetes-as-a-Service and Database-as-a-Service.
+
 #########
 # Setup #
 #########
@@ -6,15 +22,10 @@
 
 # Make sure that Docker Desktop is up-and-running.
 
-# Watch https://youtu.be/BII6ZY2Rnlc if you are not familiar with GitHub CLI (`gh`).
-gh repo fork vfarcic/crossplane-openfunction-dapr-demo \
-    --clone --remote
+git clone \
+    https://github.com/vfarcic/crossplane-openfunction-dapr-demo
 
 cd crossplane-openfunction-dapr-demo
-
-gh repo set-default
-
-# Select the fork as the default repository
 
 # Replace `[...]` with hyperscaler you'd like to use. Choices are: `aws` and `google`.
 export HYPERSCALER=[...]
@@ -134,13 +145,13 @@ kubectl --namespace production \
 
 kubectl --namespace production get secrets
 
+kubectl --namespace production get components
+
 ##########################################
 # Kubernetes Functions With OpenFunction #
 ##########################################
 
-# FIXME: Remove?
-
-cat function.yaml
+ cat function.yaml
 
 kubectl --namespace production apply --filename function.yaml
 
@@ -149,20 +160,8 @@ kubectl --namespace production get functions
 kubectl --namespace production get function openfunction-demo \
     --output jsonpath='{.status.addresses}' | jq .
 
-kubectl --namespace production run curl \
-    --image=radial/busyboxplus:curl -i --tty
-
-# Replace `[...]` with the `External` URL.
-curl "[...]"
-
-exit
-
-kubectl --namespace production get routes
-
-# Replace `[...]` with the `URL`
-export EXTERNAL_URL=[...]
-
-# ...so let me store it as the environment variable and...
+export EXTERNAL_URL=$(kubectl --namespace production get routes \
+    --output jsonpath='{.items[0].status.url}')
 
 curl "$EXTERNAL_URL"
 
@@ -172,57 +171,21 @@ curl "$EXTERNAL_URL/videos" | jq .
 
 kubectl --namespace production get pods
 
-kubectl --namespace production get pods
+# FIXME: Wait for a while
 
 kubectl --namespace production get pods
-
-curl "$EXTERNAL_URL"
-
-kubectl --namespace production get pods
-
-#############################################
-# Kubernetes Applications With OpenFunction #
-#############################################
-
-## Statestore component for Dapr
-### Before applying this resource make sure to update the connection string with the right value from the secret, get the password by running: 
-
-kubectl get secrets/openfunction-demo-db-app -n production --template={{.data.password}} | base64 -D
-
-### Alternatively we can create a new secret to contain the whole connection string based on the secret called: openfunction-demo-db-app, that was created by PostgreSQL
-
-kubectl --namespace production apply --filename dapr.yaml
-
-# FIXME: Add `dapr.yaml` to the SQL Composition
-
-cat app-no-build.yaml # The app-no-build.yaml contains references to the docker image that uses the Dapr APIs to connect to the configured Dapr Statestore
-
-kubectl --namespace production apply --filename app-no-build.yaml
-
-# FIXME: Build the image
-
-kubectl --namespace production get functions
-
-kubectl --namespace production get all
-
-## Getting URL 
-
-kubectl --namespace production get ksvc
-
-# Replace `[...]` with the `URL`
-export EXTERNAL_URL=[...]
-
-curl "$EXTERNAL_URL"
-
-curl -X POST "$EXTERNAL_URL/video?id=1&title=An%20Amazing%20Video"
 
 curl "$EXTERNAL_URL/videos" | jq .
+
+kubectl --namespace production get pods
+
+cat video.go
+
+# FIXME: From here on, just push changes to the Git repo and keep changing the versions in `function.yaml`. Just don't push it to my repo :)
 
 ###########
 # Destroy #
 ###########
-
-# FIXME: Remove `countour`.
 
 chmod +x destroy.sh
 

@@ -47,8 +47,7 @@ rm -f .env
 # Variables & Manifests #
 #########################
 
-GITHUB_ORG=$(gum input --placeholder "GitHub Organization" \
-    --value "$GITHUB_ORG")
+echo "# Variables & Manifests" | gum format
 
 REGISTRY_SERVER=$(gum input \
     --placeholder "Container image registry server (e.g., ghcr.io)" \
@@ -62,25 +61,16 @@ REGISTRY_PASSWORD=$(gum input \
     --placeholder "Container image registry password (e.g., YouWillNeverFindOut)" \
     --value "$REGISTRY_PASSWORD")
 
-# echo
-# echo "## Which Hyperscaler do you want to use?" | gum format
-# echo
-# echo "Only Google Cloud and AWS are currently supported by this script. Please open an issue if you'd like to add others."
-
-# HYPERSCALER=$(gum choose "google" "aws")
-
 echo "export HYPERSCALER=$HYPERSCALER" >> .env
-
-yq --inplace \
-    ".spec.build.srcRepo.url = \"https://github.com/$GITHUB_ORG/crossplane-openfunction-dapr-demo\"" \
-    function.yaml
 
 yq --inplace ".spec.image = \"$REGISTRY_SERVER/$REGISTRY_USER/crossplane-openfunction-dapr-demo:v0.0.1\"" \
     function.yaml
 
-###########
-# Cluster #
-###########
+#########################
+# Control Plane Cluster #
+#########################
+
+echo "# Control Plane Cluster" | gum format
 
 kind create cluster
 
@@ -89,6 +79,8 @@ kubectl create namespace a-team
 ##############
 # Crossplane #
 ##############
+
+echo "# Crossplane" | gum format
 
 helm repo add crossplane-stable \
     https://charts.crossplane.io/stable
@@ -210,6 +202,8 @@ fi
 # Registry #
 ############
 
+echo "# Registry" | gum format
+
 kubectl --namespace a-team \
     create secret docker-registry push-secret \
     --docker-server=$REGISTRY_SERVER \
@@ -242,6 +236,8 @@ fi
 # Atlas Operator #
 ##################
 
+echo "# Atlas Operator" | gum format
+
 helm upgrade --install atlas-operator \
     oci://ghcr.io/ariga/charts/atlas-operator \
     --namespace atlas-operator --create-namespace --wait
@@ -249,6 +245,8 @@ helm upgrade --install atlas-operator \
 ####################
 # External Secrets #
 ####################
+
+echo "# External Secrets" | gum format
 
 helm upgrade --install \
     external-secrets external-secrets/external-secrets \
@@ -275,3 +273,19 @@ elif [[ "$HYPERSCALER" == "aws" ]]; then
 fi
 
 kubectl apply --filename external-secrets/$HYPERSCALER.yaml
+
+##########
+# Claims #
+##########
+
+echo "# Claims" | gum format
+
+kubectl --namespace a-team apply \
+    --filename cluster/$HYPERSCALER.yaml
+
+kubectl --namespace a-team apply --filename db/$HYPERSCALER.yaml
+
+echo "## Waiting for the database server..." | gum format
+
+kubectl --namespace a-team wait --for=condition=ready \
+    sqlclaim/my-db --all --timeout=1200s
