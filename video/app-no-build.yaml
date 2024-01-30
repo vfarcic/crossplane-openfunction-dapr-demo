@@ -2,10 +2,10 @@
 apiVersion: core.openfunction.io/v1beta2
 kind: Function
 metadata:
-  name: silly-demo
+  name: videos-metadata-function
 spec:
   version: "v1.0.0"
-  image: "salaboy/silly-demo:0.1.3"
+  image: "salaboy/videos-metadata:0.1.8"
   serving:
     annotations:
       openfunction.io/enable-dapr: "true"

@@ -7,5 +7,30 @@ spec:
   version: v1
   metadata:
     - name: connectionString
-      value: "host=openfunction-demo-db-rw user=app password=Hyyxg9Gg0C1Ia1Hv9tdPDIlgLotNizC4HkdjJ4ugibXnAtsq5uOzbdwDN2AXJ8fN port=5432 connect_timeout=10 database=app"
+      value: "host=openfunction-demo-db-rw user=app password=iBguCNrIr3rF8KbiU5NoiTbDFETOg9LV3kwnUxPLGKSmogXt1TMGlZqb50F2g4wB port=5432 connect_timeout=10 database=app"
 
+# ---
+# apiVersion: dapr.io/v1alpha1
+# kind: Component
+# metadata:
+#   name: videos-pubsub
+# spec:
+#   type: pubsub.kafka
+#   version: v1
+#   metadata:
+#   - name: brokers # Required. Kafka broker connection setting
+#     value: "kafka-headless.a-team.svc.cluster.local:9092"
+#   - name: authType
+#     value: "none"  
+
+# ---
+# apiVersion: dapr.io/v1alpha1
+# kind: Subscription
+# metadata:
+#   name: publish-videos-subscritpion
+# spec:
+#   topic: events-topic
+#   route: /events
+#   pubsubname: videos-pubsub
+# scopes: 
+# - publish-video-function-a-team

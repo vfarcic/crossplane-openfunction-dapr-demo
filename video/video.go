@@ -1,6 +1,7 @@
-package sillydemo
+package videos
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"log"
@@ -18,8 +19,8 @@ type Video struct {
 var (
 	KEY             = "VIDEOS"
 	STATESTORE_NAME = getEnv("STATESTORE_NAME", "videos-statestore")
-	PUBSUB_NAME     = getEnv("PUBSUB_NAME", "videos-pubsub")
-	PUBSUB_TOPIC    = getEnv("PUBSUB_TOPIC", "videos-topic")
+	// PUBSUB_NAME     = getEnv("PUBSUB_NAME", "videos-pubsub")
+	// PUBSUB_TOPIC    = getEnv("PUBSUB_TOPIC", "events-topic")
 )
 
 func VideosHandler(w http.ResponseWriter, r *http.Request) {
@@ -97,17 +98,43 @@ func VideoHandler(w http.ResponseWriter, r *http.Request) {
 			Title: title[0],
 		}
 
-		videos = append(videos, video)
-
-		jsonData, err := json.Marshal(videos)
+		jsonVideo, err := json.Marshal(video)
 		if err != nil {
 			errorMessage = "3)" + err.Error()
 		}
 
-		if err := client.SaveState(ctx, STATESTORE_NAME, KEY, jsonData, nil); err != nil {
+		videos = append(videos, video)
+
+		jsonData, err := json.Marshal(videos)
+		if err != nil {
 			errorMessage = "4)" + err.Error()
 		}
+
+		if err := client.SaveState(ctx, STATESTORE_NAME, KEY, jsonData, nil); err != nil {
+			errorMessage = "5)" + err.Error()
+		}
+
+		// Create a HTTP post request
+		r, err := http.NewRequest("POST", "http://publish-video-function.a-team.svc.cluster.local/events", bytes.NewBuffer(jsonVideo))
+		if err != nil {
+			errorMessage = "6)" + err.Error()
+		}
+
+		client := &http.Client{}
+		res, err := client.Do(r)
+		if err != nil {
+			errorMessage = "7)" + err.Error()
+		}
+
+		defer res.Body.Close()
+
+		// // Emit Event about the stored video metadata
+		// log.Printf("Json Video Event Payload: %s", jsonVideo)
+		// if err := client.PublishEvent(ctx, PUBSUB_NAME, PUBSUB_TOPIC, jsonVideo); err != nil {
+		// 	errorMessage = "6)" + err.Error()
+		// }
 	}
+
 	status := http.StatusOK
 	if len(errorMessage) > 0 {
 		status = http.StatusBadRequest

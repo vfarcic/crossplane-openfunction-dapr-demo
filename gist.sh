@@ -148,10 +148,19 @@ kubectl get secrets/openfunction-demo-db-app -n a-team --template={{.data.passwo
 
 ### Alternatively we can create a new secret to contain the whole connection string based on the secret called: openfunction-demo-db-app, that was created by PostgreSQL
 
+## Install Kafka for Dapr PubSub (this is broken for OpenFunctions for now)
+
+# helm install kafka oci://registry-1.docker.io/bitnamicharts/kafka -n a-team --version 22.1.5 --set "provisioning.topics[0].name=events-topic" --set "provisioning.topics[0].partitions=1" --set "persistence.size=1Gi" 
+
+
 kubectl --namespace a-team apply --filename dapr.yaml
 
 cat app-no-build.yaml # The app-no-build.yaml contains references to the docker image that uses the Dapr APIs to connect to the configured Dapr Statestore
 
+cd videos/
+kubectl --namespace a-team apply --filename app-no-build.yaml
+
+cd ../publish/
 kubectl --namespace a-team apply --filename app-no-build.yaml
 
 kubectl --namespace a-team get functions

@@ -1,0 +1,19 @@
+---
+apiVersion: core.openfunction.io/v1beta2
+kind: Function
+metadata:
+  name: publish-video-function
+spec:
+  version: "v1.0.0"
+  image: "salaboy/publish-video:0.1.0"
+  serving:
+    annotations:
+      openfunction.io/enable-dapr: "true"
+      openfunction.io/dapr-service-mode: "sidecar"
+    template:
+      containers:
+        - name: function
+          imagePullPolicy: IfNotPresent
+    triggers:
+      http:
+        port: 8080

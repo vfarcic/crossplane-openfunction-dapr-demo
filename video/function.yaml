@@ -1,0 +1,30 @@
+---
+apiVersion: core.openfunction.io/v1beta2
+kind: Function
+metadata:
+  name: openfunction-demo
+spec:
+  version: "v2.0.0"
+  image: "c8n.io/vfarcic/openfunction-demo:v0.0.1"
+  serving:
+    annotations:
+      openfunction.io/enable-dapr: "true"
+      openfunction.io/dapr-service-mode: "standalone"
+    template:
+      containers:
+        - name: function # DO NOT change this
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_ENDPOINT
+              value: openfunction-demo-db-rw
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: app
+            - name: DB_NAME
+              value: app
+            - name: DB_PASS
+              value: "password"
+    triggers:
+      http:
+        port: 8080

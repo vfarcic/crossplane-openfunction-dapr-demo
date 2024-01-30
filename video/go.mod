@@ -1,4 +1,4 @@
-module devopstoolkitseries.com/silly-demo
+module devopstoolkitseries.com/videos
 
 go 1.17
 
