@@ -99,13 +99,6 @@ kubectl apply \
 
 kubectl apply --filename crossplane-packages/helm-incluster.yaml
 
-echo "## Waiting for Crossplane Packages..." | gum format
-
-sleep 60
-
-kubectl wait --for=condition=healthy provider.pkg.crossplane.io \
-    --all --timeout=600s
-
 if [[ "$HYPERSCALER" == "google" ]]; then
 
     gcloud auth login
@@ -168,9 +161,6 @@ Press the enter key to continue."
     yq --inplace ".spec.projectID = \"$PROJECT_ID\"" \
         crossplane-packages/google-config.yaml
 
-    kubectl apply \
-        --filename crossplane-packages/google-config.yaml
-
 elif [[ "$HYPERSCALER" == "aws" ]]; then
 
     AWS_ACCESS_KEY_ID=$(gum input --placeholder "AWS Access Key ID" --value "$AWS_ACCESS_KEY_ID")
@@ -192,9 +182,6 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
         --from-file creds=./aws-creds.conf \
         --from-literal accessKeyID=$AWS_ACCESS_KEY_ID \
         --from-literal secretAccessKey=$AWS_SECRET_ACCESS_KEY
-    
-    kubectl apply \
-        --filename crossplane-packages/aws-config.yaml
 
 fi
 
@@ -224,6 +211,9 @@ if [[ "$HYPERSCALER" == "google" ]]; then
 
 elif [[ "$HYPERSCALER" == "aws" ]]; then
 
+    echo '## We are about to create a Secret in AWS Secret Manager. The command that follows will display output and you should press `q` to continue.' \
+        | gum format
+    gum input --placeholder "Press the enter key to continue."
     set +e
     aws secretsmanager create-secret \
         --name registry-auth --region us-east-1 \
@@ -264,6 +254,9 @@ if [[ "$HYPERSCALER" == "google" ]]; then
 
 elif [[ "$HYPERSCALER" == "aws" ]]; then
 
+    echo '## We are about to create a Secret in AWS Secret Manager. The command that follows will display output and you should press `q` to continue.' \
+        | gum format
+    gum input --placeholder "Press the enter key to continue."
     set +e
     aws secretsmanager create-secret \
         --name db-password --region us-east-1 \
@@ -274,18 +267,28 @@ fi
 
 kubectl apply --filename external-secrets/$HYPERSCALER.yaml
 
-##########
-# Claims #
-##########
+#######################
+# Crossplane (Part 2) #
+#######################
 
-echo "# Claims" | gum format
+echo "# Crossplane (Part 2)" | gum format
 
-kubectl --namespace a-team apply \
-    --filename cluster/$HYPERSCALER.yaml
+echo "## Waiting for Crossplane Packages (<= 20 min.)..." \
+    | gum format
 
-kubectl --namespace a-team apply --filename db/$HYPERSCALER.yaml
+sleep 60
 
-echo "## Waiting for the database server..." | gum format
+kubectl wait --for=condition=healthy provider.pkg.crossplane.io \
+    --all --timeout=1200s
 
-kubectl --namespace a-team wait --for=condition=ready \
-    sqlclaim/my-db --all --timeout=1200s
+if [[ "$HYPERSCALER" == "google" ]]; then
+
+    kubectl apply \
+        --filename crossplane-packages/google-config.yaml
+
+elif [[ "$HYPERSCALER" == "aws" ]]; then
+
+    kubectl apply \
+        --filename crossplane-packages/aws-config.yaml
+
+fi
