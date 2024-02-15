@@ -37,57 +37,42 @@ Do you have those tools installed?
 
 unset KUBECONFIG
 
-if [[ "$HYPERSCALER" == "aws" ]]; then
+# Contour created a LoadBalancer Service which, in turn,
+#   created an AWS ELB. We need to delete the ELB to avoid
+#   deleting a cluster first and leaving the ELB behind.
+kubectl --kubeconfig kubeconfig.yaml \
+    --namespace projectcontour delete service contour-envoy
 
-    aws eks update-kubeconfig --region us-east-1 \
-        --name a-team-cluster --kubeconfig kubeconfig.yaml
+# Crossplane will delete the secret, but, by default, AWS
+#   only schedules it for deletion. 
+# The command that follows removes the secret immediately
+#   just in case you want to re-run the demo.
+set +e
+aws secretsmanager delete-secret --secret-id my-db \
+    --region us-east-1 --force-delete-without-recovery \
+    --no-cli-pager
+aws secretsmanager delete-secret --secret-id registry-auth \
+    --region us-east-1 --force-delete-without-recovery \
+    --no-cli-page
+aws secretsmanager delete-secret --secret-id db-password \
+    --region us-east-1 --force-delete-without-recovery \
+    --no-cli-page
+set -e
 
-    # Contour created a LoadBalancer Service which, in turn,
-    #   created an AWS ELB. We need to delete the ELB to avoid
-    #   deleting a cluster first and leaving the ELB behind.
-    kubectl --kubeconfig kubeconfig.yaml \
-        --namespace projectcontour delete service contour-envoy
+kubectl --namespace a-team delete \
+    --filename cluster/aws.yaml
 
-fi
+kubectl --namespace a-team delete \
+    --filename db/aws.yaml
 
-if [[ "$HYPERSCALER" == "google" ]]; then
+COUNTER=$(kubectl get managed --no-headers | grep -v object \
+    | grep -v release | grep -v database | wc -l)
 
-    gcloud projects delete $PROJECT_ID --quiet
-
-elif [[ "$HYPERSCALER" == "aws" ]]; then
-
-    # Crossplane will delete the secret, but, by default, AWS
-    #   only schedules it for deletion. 
-    # The command that follows removes the secret immediately
-    #   just in case you want to re-run the demo.
-    set +e
-    aws secretsmanager delete-secret --secret-id my-db \
-        --region us-east-1 --force-delete-without-recovery \
-        --no-cli-pager
-    aws secretsmanager delete-secret --secret-id registry-auth \
-        --region us-east-1 --force-delete-without-recovery \
-        --no-cli-page
-    aws secretsmanager delete-secret --secret-id db-password \
-        --region us-east-1 --force-delete-without-recovery \
-        --no-cli-page
-    set -e
-
-    kubectl --namespace a-team delete \
-        --filename cluster/$HYPERSCALER.yaml
-
-    kubectl --namespace a-team delete \
-        --filename db/$HYPERSCALER.yaml
-
+while [ $COUNTER -ne 0 ]; do
+    echo "Waiting for $COUNTER Crossplane Managed Resources to be deleted..."
+    sleep 10
     COUNTER=$(kubectl get managed --no-headers | grep -v object \
-        | grep -v release | grep -v database | wc -l)
-
-    while [ $COUNTER -ne 0 ]; do
-        echo "Waiting for $COUNTER Crossplane Managed Resources to be deleted..."
-        sleep 10
-        COUNTER=$(kubectl get managed --no-headers | grep -v object \
-            | grep -v release | grep -v database| wc -l)
-    done
-
-fi
+        | grep -v release | grep -v database| wc -l)
+done
 
 kind delete cluster
