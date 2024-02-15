@@ -28,13 +28,10 @@ echo "
 |yq CLI          |Yes                  |'https://github.com/mikefarah/yq#install'          |
 |jq CLI          |Yes                  |'https://jqlang.github.io/jq/download'             |
 |pack CLI        |Yes                  |'https://buildpacks.io/docs/tools/pack'            |
-|Google Cloud account with admin permissions|If using Google Cloud|'https://cloud.google.com'|
-|Google Cloud CLI|If using Google Cloud|'https://cloud.google.com/sdk/docs/install'        |
-|gke-gcloud-auth-plugin|If using Google Cloud|'https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke'|
 |AWS account with admin permissions|If using AWS|'https://aws.amazon.com'                  |
 |AWS CLI         |If using AWS         |'https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html'|
 
-If you are running this script from **Nix shell**, most of the requirements are already set with the exception of **Docker** and the **hyperscaler account**.
+If you are running this script from **Nix shell**, most of the requirements are already set with the exception of **Docker** and the **AWS account**.
 " | gum format
 
 gum confirm "
@@ -60,8 +57,6 @@ REGISTRY_USER=$(gum input \
 REGISTRY_PASSWORD=$(gum input \
     --placeholder "Container image registry password (e.g., YouWillNeverFindOut)" \
     --value "$REGISTRY_PASSWORD")
-
-echo "export HYPERSCALER=$HYPERSCALER" >> .env
 
 yq --inplace ".spec.image = \"$REGISTRY_SERVER/$REGISTRY_USER/crossplane-openfunction-dapr-demo:v0.0.1\"" \
     function.yaml
@@ -99,91 +94,25 @@ kubectl apply \
 
 kubectl apply --filename crossplane-packages/helm-incluster.yaml
 
-if [[ "$HYPERSCALER" == "google" ]]; then
+AWS_ACCESS_KEY_ID=$(gum input --placeholder "AWS Access Key ID" --value "$AWS_ACCESS_KEY_ID")
+echo "export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> .env
 
-    gcloud auth login
+AWS_SECRET_ACCESS_KEY=$(gum input --placeholder "AWS Secret Access Key" --value "$AWS_SECRET_ACCESS_KEY" --password)
+echo "export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env
 
-    set +e
-    gcloud components install gke-gcloud-auth-plugin
-    set -e
+AWS_ACCOUNT_ID=$(gum input --placeholder "AWS Account ID" --value "$AWS_ACCOUNT_ID")
+echo "export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID" >> .env
 
-    # Project
-
-    PROJECT_ID=dot-$(date +%Y%m%d%H%M%S)
-
-    echo "export PROJECT_ID=$PROJECT_ID" >> .env
-
-    gcloud projects create ${PROJECT_ID}
-
-    # APIs
-
-    echo "## Open https://console.cloud.google.com/marketplace/product/google/container.googleapis.com?project=$PROJECT_ID in a browser and *ENABLE* the API." \
-        | gum format
-
-    gum input --placeholder "
-Press the enter key to continue."
-
-echo "## Open https://console.cloud.google.com/marketplace/product/google/secretmanager.googleapis.com?project=$PROJECT_ID in a browser and *ENABLE* the API." \
-        | gum format
-
-    gum input --placeholder "
-Press the enter key to continue."
-
-echo "## Open https://console.cloud.google.com/apis/library/sqladmin.googleapis.com?project=$PROJECT_ID in a browser and *ENABLE* the API." \
-        | gum format
-
-    gum input --placeholder "
-Press the enter key to continue."
-
-    # Service Account (general)
-
-    export SA_NAME=devops-toolkit
-
-    export SA="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
-
-    gcloud iam service-accounts create $SA_NAME \
-        --project $PROJECT_ID
-
-    export ROLE=roles/admin
-
-    gcloud projects add-iam-policy-binding --role $ROLE \
-        $PROJECT_ID --member serviceAccount:$SA
-
-    gcloud iam service-accounts keys create gcp-creds.json \
-        --project $PROJECT_ID --iam-account $SA
-
-    kubectl --namespace crossplane-system \
-        create secret generic gcp-creds \
-        --from-file creds=./gcp-creds.json
-
-    # Crossplane
-
-    yq --inplace ".spec.projectID = \"$PROJECT_ID\"" \
-        crossplane-packages/google-config.yaml
-
-elif [[ "$HYPERSCALER" == "aws" ]]; then
-
-    AWS_ACCESS_KEY_ID=$(gum input --placeholder "AWS Access Key ID" --value "$AWS_ACCESS_KEY_ID")
-    echo "export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> .env
-    
-    AWS_SECRET_ACCESS_KEY=$(gum input --placeholder "AWS Secret Access Key" --value "$AWS_SECRET_ACCESS_KEY" --password)
-    echo "export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env
-
-    AWS_ACCOUNT_ID=$(gum input --placeholder "AWS Account ID" --value "$AWS_ACCOUNT_ID")
-    echo "export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID" >> .env
-
-    echo "[default]
+echo "[default]
 aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 " >aws-creds.conf
 
-    kubectl --namespace crossplane-system \
-        create secret generic aws-creds \
-        --from-file creds=./aws-creds.conf \
-        --from-literal accessKeyID=$AWS_ACCESS_KEY_ID \
-        --from-literal secretAccessKey=$AWS_SECRET_ACCESS_KEY
-
-fi
+kubectl --namespace crossplane-system \
+    create secret generic aws-creds \
+    --from-file creds=./aws-creds.conf \
+    --from-literal accessKeyID=$AWS_ACCESS_KEY_ID \
+    --from-literal secretAccessKey=$AWS_SECRET_ACCESS_KEY
 
 ############
 # Registry #
@@ -203,24 +132,14 @@ REGISTRY_AUTH=$(kubectl --namespace a-team \
 
 kubectl --namespace a-team delete secret push-secret
 
-if [[ "$HYPERSCALER" == "google" ]]; then
-
-    echo "{\".dockerconfigjson\": $REGISTRY_AUTH }" \
-        | gcloud secrets --project $PROJECT_ID \
-        create registry-auth --data-file=-
-
-elif [[ "$HYPERSCALER" == "aws" ]]; then
-
-    echo '## We are about to create a Secret in AWS Secret Manager. The command that follows will display output and you should press `q` to continue.' \
-        | gum format
-    gum input --placeholder "Press the enter key to continue."
-    set +e
-    aws secretsmanager create-secret \
-        --name registry-auth --region us-east-1 \
-        --secret-string "{\".dockerconfigjson\": $REGISTRY_AUTH }"
-    set -e
-
-fi
+echo '## We are about to create a Secret in AWS Secret Manager. The command that follows will display output and you should press `q` to continue.' \
+    | gum format
+gum input --placeholder "Press the enter key to continue."
+set +e
+aws secretsmanager create-secret \
+    --name registry-auth --region us-east-1 \
+    --secret-string "{\".dockerconfigjson\": $REGISTRY_AUTH }"
+set -e
 
 ##################
 # Atlas Operator #
@@ -242,30 +161,16 @@ helm upgrade --install \
     external-secrets external-secrets/external-secrets \
     --namespace external-secrets --create-namespace --wait
 
-if [[ "$HYPERSCALER" == "google" ]]; then
+echo '## We are about to create a Secret in AWS Secret Manager. The command that follows will display output and you should press `q` to continue.' \
+    | gum format
+gum input --placeholder "Press the enter key to continue."
+set +e
+aws secretsmanager create-secret \
+    --name db-password --region us-east-1 \
+    --secret-string "{\"password\": \"IWillNeverTell\" }"
+set -e
 
-    yq --inplace \
-        ".spec.provider.gcpsm.projectID = \"$PROJECT_ID\"" \
-        external-secrets/google.yaml
-
-    echo "{\"password\": \"IWillNeverTell\" }" \
-        | gcloud secrets --project $PROJECT_ID \
-        create db-password --data-file=-
-
-elif [[ "$HYPERSCALER" == "aws" ]]; then
-
-    echo '## We are about to create a Secret in AWS Secret Manager. The command that follows will display output and you should press `q` to continue.' \
-        | gum format
-    gum input --placeholder "Press the enter key to continue."
-    set +e
-    aws secretsmanager create-secret \
-        --name db-password --region us-east-1 \
-        --secret-string "{\"password\": \"IWillNeverTell\" }"
-    set -e
-
-fi
-
-kubectl apply --filename external-secrets/$HYPERSCALER.yaml
+kubectl apply --filename external-secrets/aws.yaml
 
 #######################
 # Crossplane (Part 2) #
@@ -281,14 +186,5 @@ sleep 60
 kubectl wait --for=condition=healthy provider.pkg.crossplane.io \
     --all --timeout=1200s
 
-if [[ "$HYPERSCALER" == "google" ]]; then
-
-    kubectl apply \
-        --filename crossplane-packages/google-config.yaml
-
-elif [[ "$HYPERSCALER" == "aws" ]]; then
-
-    kubectl apply \
-        --filename crossplane-packages/aws-config.yaml
-
-fi
+kubectl apply \
+    --filename crossplane-packages/aws-config.yaml

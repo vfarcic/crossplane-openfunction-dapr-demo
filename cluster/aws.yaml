@@ -21,8 +21,6 @@ spec:
       externalSecrets:
         enabled: true
         store: true
-        awsAccessKeyIDKey: accessKeyID
-        awsSecretAccessKeyKey: secretAccessKey        
         secrets:
           - fromSecret: registry-auth
             toSecret: push-secret

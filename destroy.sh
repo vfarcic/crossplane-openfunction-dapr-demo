@@ -35,6 +35,8 @@ Do you have those tools installed?
 # Crossplane #
 ##############
 
+unset KUBECONFIG
+
 if [[ "$HYPERSCALER" == "aws" ]]; then
 
     aws eks update-kubeconfig --region us-east-1 \
