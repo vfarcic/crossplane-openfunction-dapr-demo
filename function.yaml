@@ -22,7 +22,7 @@ spec:
       openfunction.io/dapr-service-mode: "sidecar"
     template:
       containers:
-        - name: function # DO NOT change this
+        - name: function
           imagePullPolicy: IfNotPresent
           env:
             - name: STATESTORE_NAME
