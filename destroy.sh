@@ -37,9 +37,12 @@ Do you have those tools installed?
 
 unset KUBECONFIG
 
+set +e
+
 # Contour created a LoadBalancer Service which, in turn,
 #   created an AWS ELB. We need to delete the ELB to avoid
 #   deleting a cluster first and leaving the ELB behind.
+
 kubectl --kubeconfig kubeconfig.yaml \
     --namespace projectcontour delete service contour-envoy
 
@@ -47,7 +50,7 @@ kubectl --kubeconfig kubeconfig.yaml \
 #   only schedules it for deletion. 
 # The command that follows removes the secret immediately
 #   just in case you want to re-run the demo.
-set +e
+
 aws secretsmanager delete-secret --secret-id my-db \
     --region us-east-1 --force-delete-without-recovery \
     --no-cli-pager
@@ -57,6 +60,7 @@ aws secretsmanager delete-secret --secret-id registry-auth \
 aws secretsmanager delete-secret --secret-id db-password \
     --region us-east-1 --force-delete-without-recovery \
     --no-cli-page
+
 set -e
 
 kubectl --namespace a-team delete \
