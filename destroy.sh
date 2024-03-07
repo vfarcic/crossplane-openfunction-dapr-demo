@@ -63,11 +63,9 @@ aws secretsmanager delete-secret --secret-id db-password \
 
 set -e
 
-kubectl --namespace a-team delete \
-    --filename cluster/aws.yaml
+kubectl --namespace a-team delete --filename cluster/aws.yaml
 
-kubectl --namespace a-team delete \
-    --filename db/aws.yaml
+kubectl --namespace a-team delete --filename db/aws.yaml
 
 COUNTER=$(kubectl get managed --no-headers | grep -v object \
     | grep -v release | grep -v database | wc -l)
