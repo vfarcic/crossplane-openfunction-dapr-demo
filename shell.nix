@@ -16,6 +16,7 @@ pkgs.mkShell {
     bat
     buildpack
     awscli2
+    teller
   ];
   shellHook =
   ''
