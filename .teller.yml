@@ -7,7 +7,7 @@ providers:
       REGISTRY_USER:
         path: projects/vfarcic/secrets/github-user/versions/1
       REGISTRY_PASSWORD:
-        path: projects/vfarcic/secrets/github-token/versions/2
+        path: projects/vfarcic/secrets/github-token/versions/4
       AWS_ACCESS_KEY_ID:
         path: projects/vfarcic/secrets/aws-access-key-id/versions/5
       AWS_SECRET_ACCESS_KEY:

@@ -7,3 +7,4 @@
 /bin
 /.env
 /azure-keyvault.json
+/crossplane
