@@ -67,7 +67,7 @@ yq --inplace ".spec.image = \"$REGISTRY_SERVER/$REGISTRY_USER/crossplane-openfun
 
 echo "# Control Plane Cluster" | gum format
 
-kind create cluster
+eksctl create cluster --config-file eksctl.yaml
 
 kubectl create namespace a-team
 

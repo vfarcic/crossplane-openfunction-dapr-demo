@@ -35,7 +35,7 @@ Do you have those tools installed?
 # Crossplane #
 ##############
 
-unset KUBECONFIG
+export KUBECONFIG=$PWD/kubeconfig-cp.yaml
 
 set +e
 
@@ -77,4 +77,4 @@ while [ $COUNTER -ne 0 ]; do
         | grep -v release | grep -v database| wc -l)
 done
 
-kind delete cluster
+eksctl delete cluster --config-file eksctl.yaml
