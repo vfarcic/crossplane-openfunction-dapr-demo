@@ -18,6 +18,7 @@ pkgs.mkShell {
     awscli2
     eksctl
     teller
+    eksctl
   ];
   shellHook =
   ''

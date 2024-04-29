@@ -35,7 +35,7 @@ Do you have those tools installed?
 # Crossplane #
 ##############
 
-export KUBECONFIG=$PWD/kubeconfig-cp.yaml
+unset KUBECONFIG
 
 set +e
 

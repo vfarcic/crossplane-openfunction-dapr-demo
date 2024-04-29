@@ -12,7 +12,9 @@
     "buildpack@0.33.2",
     "awscli2@2.15.38",
     "teller@1.5.6",
-    "crossplane-cli@1.15.2"
+    "crossplane-cli@1.15.2",
+    "eksctl@0.175.0",
+    "viddy@0.4.0"
   ],
   "shell": {
     "init_hook": [
