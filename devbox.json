@@ -14,13 +14,12 @@
     "teller@1.5.6",
     "crossplane-cli@1.15.2",
     "eksctl@0.175.0",
-    "viddy@0.4.0"
+    "viddy@0.4.0",
+    "hey@0.1.4",
+    "zellij@0.40.1"
   ],
   "shell": {
-    "init_hook": [
-      "alias cat='bat --paging never --theme DarkNeon --style plain'",
-      "PS1=\"➜ \""
-    ],
-    "scripts": {}
+    "init_hook": [],
+    "scripts":   {}
   }
 }

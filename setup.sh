@@ -67,6 +67,9 @@ yq --inplace ".spec.image = \"$REGISTRY_SERVER/$REGISTRY_USER/crossplane-openfun
 
 echo "# Control Plane Cluster" | gum format
 
+export KUBECONFIG=$PWD/kubeconfig-cp.yaml
+echo "export KUBECONFIG=$KUBECONFIG" >> .env
+
 eksctl create cluster --config-file eksctl.yaml
 
 kubectl create namespace a-team
@@ -157,6 +160,10 @@ helm upgrade --install atlas-operator \
 
 echo "# External Secrets" | gum format
 
+helm repo add external-secrets https://charts.external-secrets.io
+
+helm repo update
+
 helm upgrade --install \
     external-secrets external-secrets/external-secrets \
     --namespace external-secrets --create-namespace --wait
@@ -180,8 +187,6 @@ echo "# Crossplane (Part 2)" | gum format
 
 echo "## Waiting for Crossplane Packages (<= 20 min.)..." \
     | gum format
-
-sleep 60
 
 kubectl wait --for=condition=healthy provider.pkg.crossplane.io \
     --all --timeout=1200s
