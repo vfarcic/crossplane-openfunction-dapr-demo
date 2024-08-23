@@ -35,7 +35,7 @@ Do you have those tools installed?
 # Crossplane #
 ##############
 
-unset KUBECONFIG
+export KUBECONFIG=$PWD/kubeconfig-cp.yaml
 
 set +e
 
@@ -78,3 +78,5 @@ while [ $COUNTER -ne 0 ]; do
 done
 
 eksctl delete cluster --config-file eksctl.yaml
+
+rm kubeconfig*.yaml
