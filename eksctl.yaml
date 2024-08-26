@@ -9,4 +9,3 @@ managedNodeGroups:
   instanceType: t2.medium
   minSize: 3
   maxSize: 6
-  spot: true
